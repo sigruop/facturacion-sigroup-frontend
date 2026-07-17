@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Facturación mensual · SOEM Group</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#F3F5F7;
+    --surface:#FFFFFF;
+    --surface-alt:#F8FAFB;
+    --border:#E2E6EA;
+    --text-primary:#172333;
+    --text-secondary:#5C6B7A;
+    --text-muted:#94A0AC;
+    --accent:#0F6E56;
+    --accent-dark:#0B5443;
+    --accent-light:#E1F5EE;
+    --warning:#B0700F;
+    --warning-light:#FBEEDD;
+    --danger:#B23A3A;
+    --danger-light:#FBE7E7;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text-primary);
+    font-family:"Inter",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px;}
+
+  header.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:22px;}
+  .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin:0 0 4px;}
+  h1{font-family:"Manrope",sans-serif;font-weight:800;font-size:26px;margin:0;color:var(--text-primary);}
+  .topbar-right{display:flex;align-items:center;gap:10px;}
+  #ultima-actualizacion{font-size:12px;color:var(--text-muted);}
+  button.icon-btn{
+    border:1px solid var(--border);background:var(--surface);border-radius:8px;
+    width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;color:var(--text-secondary);font-size:16px;
+  }
+  button.icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  #config-panel{
+    display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:14px 16px;margin-bottom:18px;gap:10px;align-items:center;flex-wrap:wrap;
+  }
+  #config-panel.abierto{display:flex;}
+  #config-panel label{font-size:13px;color:var(--text-secondary);font-weight:500;}
+  #config-panel input{
+    flex:1;min-width:220px;border:1px solid var(--border);border-radius:8px;padding:8px 10px;
+    font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--text-primary);background:var(--surface-alt);
+  }
+  #config-panel button{
+    background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;
+    font-weight:600;font-size:13px;cursor:pointer;
+  }
+
+  .meses{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;}
+  .meses::-webkit-scrollbar{height:6px;}
+  .mes-pill{
+    flex:0 0 auto;border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);
+    border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
+  }
+  .mes-pill.activo{background:var(--text-primary);border-color:var(--text-primary);color:#fff;}
+
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+  .filtro-chip{
+    border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);
+    border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;
+  }
+  .filtro-chip.activo{background:var(--accent-light);border-color:var(--accent);color:var(--accent-dark);}
+
+  #banner-errores{
+    display:none;background:var(--warning-light);border:1px solid #EBD2A8;color:var(--warning);
+    border-radius:var(--radius);padding:12px 16px;font-size:13px;margin-bottom:18px;line-height:1.5;
+  }
+  #banner-errores.visible{display:block;}
+  #banner-errores b{color:inherit;}
+
+  .hero{
+    display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:18px;
+  }
+  @media (max-width:680px){ .hero{grid-template-columns:1fr;} }
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;}
+
+  .hero-total .label{font-size:13px;color:var(--text-secondary);font-weight:500;margin-bottom:8px;}
+  .hero-total .cifra{font-size:44px;font-weight:600;letter-spacing:-0.01em;line-height:1.1;color:var(--text-primary);}
+  .hero-total .sub{margin-top:10px;font-size:13px;color:var(--text-secondary);}
+  .hero-total .sub b{color:var(--text-primary);font-weight:600;}
+
+  .gauge-card{display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .gauge-card .label{font-size:13px;color:var(--text-secondary);font-weight:500;margin-bottom:4px;}
+  #gauge-pct{font-size:26px;font-weight:600;fill:var(--text-primary);font-family:"IBM Plex Mono",monospace;}
+
+  .empresas{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+  .empresa-row{display:grid;grid-template-columns:170px 1fr 110px;align-items:center;gap:12px;font-size:13px;}
+  .empresa-row .nombre{font-weight:600;color:var(--text-primary);}
+  .empresa-row .barra-track{background:var(--surface-alt);border:1px solid var(--border);border-radius:999px;height:10px;overflow:hidden;}
+  .empresa-row .barra-fill{background:var(--accent);height:100%;border-radius:999px;}
+  .empresa-row .monto{text-align:right;color:var(--text-secondary);}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);
+    font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--border);
+  }
+  thead th.num{text-align:right;}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text-primary);}
+  tbody td.num{text-align:right;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-alt);}
+  tfoot td{padding:13px 12px 0;font-weight:700;border-top:2px solid var(--text-primary);}
+
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;}
+  .badge.pagada{background:var(--accent-light);color:var(--accent-dark);}
+  .badge.vigente{background:var(--warning-light);color:var(--warning);}
+  .badge.anulada{background:var(--danger-light);color:var(--danger);}
+
+  #estado-carga{padding:40px 0;text-align:center;color:var(--text-muted);font-size:14px;}
+
+  footer{margin-top:30px;text-align:center;font-size:12px;color:var(--text-muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Salud Integral · CEMEI · Neoform</p>
+      <h1>Facturación mensual</h1>
+    </div>
+    <div class="topbar-right">
+      <span id="ultima-actualizacion"></span>
+      <button class="icon-btn" id="btn-config" title="Configurar backend" aria-label="Configurar backend">⚙</button>
+    </div>
+  </header>
+
+  <div id="config-panel">
+    <label for="input-backend">URL del backend</label>
+    <input id="input-backend" type="text" placeholder="https://tu-backend.onrender.com" />
+    <button id="btn-guardar-backend">Guardar</button>
+  </div>
+
+  <nav class="meses" id="meses"></nav>
+
+  <div class="filtros" id="filtros">
+    <button class="filtro-chip" data-empresa="">Todas las empresas</button>
+    <button class="filtro-chip" data-empresa="SIG">Salud Integral</button>
+    <button class="filtro-chip" data-empresa="CEMEI">CEMEI</button>
+    <button class="filtro-chip" data-empresa="NEO">Neoform</button>
+  </div>
+
+  <div id="banner-errores"></div>
+
+  <div id="estado-carga">Cargando datos…</div>
+
+  <div id="contenido" style="display:none;">
+    <section class="hero">
+      <div class="card hero-total">
+        <div class="label" id="hero-label">Total facturado</div>
+        <div class="cifra mono" id="hero-cifra">$0,00</div>
+        <div class="sub" id="hero-sub"></div>
+      </div>
+      <div class="card gauge-card">
+        <div class="label">% cobrado</div>
+        <svg viewBox="0 0 200 120" width="200" height="120">
+          <path d="M20,100 A80,80 0 0 1 180,100" fill="none" stroke="var(--surface-alt)" stroke-width="16" stroke-linecap="round" />
+          <path id="gauge-arc" d="M20,100 A80,80 0 0 1 180,100" fill="none" stroke="var(--accent)" stroke-width="16" stroke-linecap="round" stroke-dasharray="0 251.33" />
+          <text id="gauge-pct" x="100" y="95" text-anchor="middle">0%</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="card empresas" id="seccion-empresas" style="margin-bottom:18px;"></section>
+
+    <section class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:20px 24px 4px;">
+        <p class="eyebrow" style="margin-bottom:2px;">Detalle</p>
+        <h2 style="font-family:'Manrope',sans-serif;font-size:16px;margin:0;font-weight:700;">Facturación por cliente</h2>
+      </div>
+      <div style="padding:12px 24px 24px;overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente / concepto</th>
+              <th class="num">Monto</th>
+              <th class="num">Cobrado</th>
+              <th class="num">Saldo</th>
+              <th class="num">%</th>
+              <th class="num">Días venc.</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body"></tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td class="num mono" id="pie-monto">$0,00</td>
+              <td class="num mono" id="pie-cobrado">$0,00</td>
+              <td class="num mono" id="pie-saldo">$0,00</td>
+              <td class="num mono" id="pie-pct">0%</td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <footer>Datos en vivo desde las APIs de SOEM Group · uso interno</footer>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const CONFIG = {
+    backendUrl: params.get("backend") || localStorageDisabled_defaultBackend(),
+  };
+  function localStorageDisabled_defaultBackend(){
+    // Reemplazá esta URL por la de tu backend en Render una vez desplegado.
+    return "https://tu-backend.onrender.com";
+  }
+
+  const MESES_ES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+
+  const state = {
+    mes: null,       // "2026-06"
+    empresa: "",      // "" = todas, o SIG / CEMEI / NEO
+  };
+
+  function generarMeses(){
+    const inicio = new Date(2026, 0, 1);
+    const ahora = new Date();
+    const meses = [];
+    let cursor = new Date(inicio);
+    while (cursor <= ahora){
+      const y = cursor.getFullYear();
+      const m = String(cursor.getMonth() + 1).padStart(2, "0");
+      meses.push(`${y}-${m}`);
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+    return meses;
+  }
+
+  function formatearMes(valor){
+    const [y, m] = valor.split("-").map(Number);
+    return `${MESES_ES[m - 1]} ${y}`;
+  }
+
+  function money(n){
+    const num = Number(n) || 0;
+    return "$" + num.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function ultimoDiaDeMes(valorMes){
+    const [y, m] = valorMes.split("-").map(Number);
+    const ultimo = new Date(y, m, 0).getDate();
+    return `${valorMes}-${String(ultimo).padStart(2, "0")}`;
+  }
+
+  function pintarMeses(){
+    const cont = document.getElementById("meses");
+    cont.innerHTML = "";
+    const meses = generarMeses();
+    meses.forEach((m) => {
+      const btn = document.createElement("button");
+      btn.className = "mes-pill" + (m === state.mes ? " activo" : "");
+      btn.textContent = m;
+      btn.addEventListener("click", () => {
+        state.mes = m;
+        pintarMeses();
+        cargarDatos();
+      });
+      cont.appendChild(btn);
+    });
+    if (!state.mes) state.mes = meses[meses.length - 1];
+  }
+
+  function pintarFiltros(){
+    document.querySelectorAll(".filtro-chip").forEach((chip) => {
+      chip.classList.toggle("activo", chip.dataset.empresa === state.empresa);
+      chip.addEventListener("click", () => {
+        state.empresa = chip.dataset.empresa;
+        pintarFiltros();
+        cargarDatos();
+      });
+    });
+  }
+
+  function badgeEstado(estado){
+    const clase = estado === "Pagada" ? "pagada" : estado === "Anulada" ? "anulada" : "vigente";
+    return `<span class="badge ${clase}">${estado}</span>`;
+  }
+
+  function renderizar(data){
+    document.getElementById("estado-carga").style.display = "none";
+    document.getElementById("contenido").style.display = "block";
+    document.getElementById("ultima-actualizacion").textContent =
+      "Actualizado " + new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+
+    const bannerErrores = document.getElementById("banner-errores");
+    if (data.errores && data.errores.length){
+      bannerErrores.classList.add("visible");
+      bannerErrores.innerHTML = "<b>Aviso:</b> no se pudo consultar: " + data.errores.join(" · ");
+    } else {
+      bannerErrores.classList.remove("visible");
+      bannerErrores.innerHTML = "";
+    }
+
+    const empresaLabel = state.empresa
+      ? document.querySelector(`.filtro-chip[data-empresa="${state.empresa}"]`).textContent
+      : "todas las empresas";
+    document.getElementById("hero-label").textContent = `Total facturado — ${formatearMes(state.mes)}`;
+    document.getElementById("hero-cifra").textContent = money(data.totalFacturado);
+    document.getElementById("hero-sub").innerHTML =
+      `<b>${data.cantidadFacturas}</b> facturas · <b>${data.porcentajeCobrado}%</b> cobrado · ${empresaLabel}`;
+
+    const pct = Math.max(0, Math.min(100, data.porcentajeCobrado || 0));
+    const circunferencia = 251.33;
+    document.getElementById("gauge-arc").setAttribute(
+      "stroke-dasharray",
+      `${(pct / 100) * circunferencia} ${circunferencia}`
+    );
+    document.getElementById("gauge-pct").textContent = pct.toFixed(1) + "%";
+
+    const contEmpresas = document.getElementById("seccion-empresas");
+    if (!state.empresa && data.porEmpresa && data.porEmpresa.length > 1){
+      contEmpresas.style.display = "flex";
+      const max = Math.max(...data.porEmpresa.map((e) => e.monto), 1);
+      contEmpresas.innerHTML = data.porEmpresa
+        .map(
+          (e) => `
+        <div class="empresa-row">
+          <div class="nombre">${e.empresa}</div>
+          <div class="barra-track"><div class="barra-fill" style="width:${(e.monto / max) * 100}%"></div></div>
+          <div class="monto mono">${money(e.monto)}</div>
+        </div>`
+        )
+        .join("");
+    } else {
+      contEmpresas.style.display = "none";
+      contEmpresas.innerHTML = "";
+    }
+
+    const tbody = document.getElementById("tabla-body");
+    if (!data.porCliente || data.porCliente.length === 0){
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">Sin facturas en este período</td></tr>`;
+    } else {
+      tbody.innerHTML = data.porCliente
+        .map(
+          (c) => `
+        <tr>
+          <td>${c.cliente}${!state.empresa ? `<div style="font-size:11.5px;color:var(--text-muted);">${c.empresa}</div>` : ""}</td>
+          <td class="num mono">${money(c.monto)}</td>
+          <td class="num mono">${money(c.cobrado)}</td>
+          <td class="num mono">${money(c.saldo)}</td>
+          <td class="num mono">${c.porcentaje}%</td>
+          <td class="num mono">${c.diasVencido || 0}</td>
+          <td>${badgeEstado(c.estado)}</td>
+        </tr>`
+        )
+        .join("");
+    }
+
+    document.getElementById("pie-monto").textContent = money(data.totalFacturado);
+    document.getElementById("pie-cobrado").textContent = money(data.totalCobrado);
+    document.getElementById("pie-saldo").textContent = money(data.totalFacturado - data.totalCobrado);
+    document.getElementById("pie-pct").textContent = data.porcentajeCobrado + "%";
+  }
+
+  async function cargarDatos(){
+    document.getElementById("estado-carga").style.display = "block";
+    document.getElementById("estado-carga").textContent = "Cargando datos…";
+    document.getElementById("contenido").style.display = "none";
+
+    const desde = `${state.mes}-01`;
+    const hasta = ultimoDiaDeMes(state.mes);
+    const empresaParam = state.empresa ? `&empresa=${state.empresa}` : "";
+    const url = `${CONFIG.backendUrl}/api/facturacion?desde=${desde}&hasta=${hasta}${empresaParam}`;
+
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`El backend respondió ${resp.status}`);
+      const data = await resp.json();
+      renderizar(data);
+    } catch (err){
+      document.getElementById("estado-carga").textContent =
+        "No se pudo cargar la información. Revisá la URL del backend (⚙ arriba a la derecha) y que esté activo. " +
+        "Detalle: " + err.message;
+    }
+  }
+
+  document.getElementById("btn-config").addEventListener("click", () => {
+    const panel = document.getElementById("config-panel");
+    panel.classList.toggle("abierto");
+    document.getElementById("input-backend").value = CONFIG.backendUrl;
+  });
+  document.getElementById("btn-guardar-backend").addEventListener("click", () => {
+    const valor = document.getElementById("input-backend").value.trim();
+    if (valor) {
+      CONFIG.backendUrl = valor.replace(/\/$/, "");
+      document.getElementById("config-panel").classList.remove("abierto");
+      cargarDatos();
+    }
+  });
+
+  pintarMeses();
+  pintarFiltros();
+  cargarDatos();
+</script>
+</body>
+</html>
