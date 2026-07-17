@@ -34,7 +34,7 @@
     -webkit-font-smoothing:antialiased;
   }
   .mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;}
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px;}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 64px;}
 
   header.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:22px;}
   .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin:0 0 4px;}
@@ -71,12 +71,22 @@
   }
   .mes-pill.activo{background:var(--text-primary);border-color:var(--text-primary);color:#fff;}
 
-  .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+  .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
   .filtro-chip{
     border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);
     border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;
   }
   .filtro-chip.activo{background:var(--accent-light);border-color:var(--accent);color:var(--accent-dark);}
+
+  .subfiltros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:22px;}
+  .subfiltros .campo{display:flex;align-items:center;gap:6px;}
+  .subfiltros label{font-size:11.5px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .subfiltros select, .subfiltros input[type="search"]{
+    border:1px solid var(--border);background:var(--surface);border-radius:8px;
+    padding:7px 11px;font-size:13px;color:var(--text-primary);font-family:inherit;
+  }
+  .subfiltros input[type="search"]{flex:1;min-width:200px;}
+  .subfiltros select{min-width:170px;}
 
   #banner-errores{
     display:none;background:var(--warning-light);border:1px solid #EBD2A8;color:var(--warning);
@@ -111,19 +121,26 @@
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
   thead th{
     text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);
-    font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--border);
+    font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--border);white-space:nowrap;
   }
   thead th.num{text-align:right;}
-  tbody td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text-primary);}
-  tbody td.num{text-align:right;}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--border);color:var(--text-primary);vertical-align:top;}
+  tbody td.num{text-align:right;white-space:nowrap;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:var(--surface-alt);}
   tfoot td{padding:13px 12px 0;font-weight:700;border-top:2px solid var(--text-primary);}
+  .subtexto{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
 
-  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;}
+  .badge{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap;}
   .badge.pagada{background:var(--accent-light);color:var(--accent-dark);}
   .badge.vigente{background:var(--warning-light);color:var(--warning);}
   .badge.anulada{background:var(--danger-light);color:var(--danger);}
+
+  #btn-mostrar-mas{
+    display:block;margin:16px auto 0;background:var(--surface-alt);border:1px solid var(--border);
+    border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;
+  }
+  #btn-mostrar-mas:hover{border-color:var(--accent);color:var(--accent);}
 
   #estado-carga{padding:40px 0;text-align:center;color:var(--text-muted);font-size:14px;}
 
@@ -159,6 +176,14 @@
     <button class="filtro-chip" data-empresa="NEO">Neoform</button>
   </div>
 
+  <div class="subfiltros" id="subfiltros">
+    <div class="campo" id="campo-origen" style="display:none;">
+      <label for="filtro-origen">Origen</label>
+      <select id="filtro-origen"><option value="">Todos</option></select>
+    </div>
+    <input type="search" id="buscador" placeholder="Buscar por cliente o concepto…" />
+  </div>
+
   <div id="banner-errores"></div>
 
   <div id="estado-carga">Cargando datos…</div>
@@ -185,13 +210,16 @@
     <section class="card" style="padding:0;overflow:hidden;">
       <div style="padding:20px 24px 4px;">
         <p class="eyebrow" style="margin-bottom:2px;">Detalle</p>
-        <h2 style="font-family:'Manrope',sans-serif;font-size:16px;margin:0;font-weight:700;">Facturación por cliente</h2>
+        <h2 style="font-family:'Manrope',sans-serif;font-size:16px;margin:0;font-weight:700;">Facturas del período</h2>
       </div>
       <div style="padding:12px 24px 24px;overflow-x:auto;">
         <table>
           <thead>
             <tr>
-              <th>Cliente / concepto</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Concepto</th>
+              <th>Origen</th>
               <th class="num">Monto</th>
               <th class="num">Cobrado</th>
               <th class="num">Saldo</th>
@@ -203,7 +231,7 @@
           <tbody id="tabla-body"></tbody>
           <tfoot>
             <tr>
-              <td>Total</td>
+              <td colspan="4">Total (<span id="pie-cantidad">0</span> facturas)</td>
               <td class="num mono" id="pie-monto">$0,00</td>
               <td class="num mono" id="pie-cobrado">$0,00</td>
               <td class="num mono" id="pie-saldo">$0,00</td>
@@ -213,6 +241,7 @@
             </tr>
           </tfoot>
         </table>
+        <button id="btn-mostrar-mas" style="display:none;">Mostrar más</button>
       </div>
     </section>
   </div>
@@ -223,18 +252,23 @@
 <script>
   const params = new URLSearchParams(location.search);
   const CONFIG = {
-    backendUrl: params.get("backend") || localStorageDisabled_defaultBackend(),
+    backendUrl: params.get("backend") || defaultBackend(),
   };
-  function localStorageDisabled_defaultBackend(){
+  function defaultBackend(){
     // Reemplazá esta URL por la de tu backend en Render una vez desplegado.
     return "https://facturacion-sigroup-backend.onrender.com";
   }
 
   const MESES_ES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  const FILAS_POR_PAGINA = 50;
 
   const state = {
-    mes: null,       // "2026-06"
-    empresa: "",      // "" = todas, o SIG / CEMEI / NEO
+    mes: null,        // "2026-06"
+    empresa: "",       // "" = todas, o SIG / CEMEI / NEO
+    origen: "",         // "" = todos
+    busqueda: "",
+    filasVisibles: FILAS_POR_PAGINA,
+    datos: null,        // última respuesta cruda del backend
   };
 
   function generarMeses(){
@@ -301,30 +335,70 @@
     return `<span class="badge ${clase}">${estado}</span>`;
   }
 
-  function renderizar(data){
+  function construirOpcionesOrigen(facturas){
+    const valores = new Set();
+    facturas.forEach((f) => { if (f.origen) valores.add(f.origen); });
+    const select = document.getElementById("filtro-origen");
+    const campo = document.getElementById("campo-origen");
+    select.innerHTML = '<option value="">Todos</option>';
+    if (valores.size === 0){
+      campo.style.display = "none";
+      return;
+    }
+    campo.style.display = "flex";
+    Array.from(valores).sort().forEach((v) => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      select.appendChild(opt);
+    });
+    select.value = state.origen;
+  }
+
+  function facturasFiltradas(){
+    let lista = (state.datos && state.datos.facturas) || [];
+    if (state.origen) lista = lista.filter((f) => f.origen === state.origen);
+    if (state.busqueda){
+      const q = state.busqueda.toLowerCase();
+      lista = lista.filter((f) =>
+        (f.cliente || "").toLowerCase().includes(q) ||
+        (f.concepto || "").toLowerCase().includes(q)
+      );
+    }
+    return lista;
+  }
+
+  function renderizar(){
     document.getElementById("estado-carga").style.display = "none";
     document.getElementById("contenido").style.display = "block";
     document.getElementById("ultima-actualizacion").textContent =
       "Actualizado " + new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
 
+    const errores = (state.datos && state.datos.errores) || [];
     const bannerErrores = document.getElementById("banner-errores");
-    if (data.errores && data.errores.length){
+    if (errores.length){
       bannerErrores.classList.add("visible");
-      bannerErrores.innerHTML = "<b>Aviso:</b> no se pudo consultar: " + data.errores.join(" · ");
+      bannerErrores.innerHTML = "<b>Aviso:</b> no se pudo consultar: " + errores.join(" · ");
     } else {
       bannerErrores.classList.remove("visible");
       bannerErrores.innerHTML = "";
     }
 
+    const lista = facturasFiltradas();
+    const totalFacturado = lista.reduce((a, f) => a + f.monto, 0);
+    const totalCobrado = lista.reduce((a, f) => a + f.cobrado, 0);
+    const porcentajeCobrado = totalFacturado > 0 ? +((totalCobrado / totalFacturado) * 100).toFixed(2) : 0;
+
     const empresaLabel = state.empresa
       ? document.querySelector(`.filtro-chip[data-empresa="${state.empresa}"]`).textContent
       : "todas las empresas";
+    const origenLabel = state.origen ? ` · origen: ${state.origen}` : "";
     document.getElementById("hero-label").textContent = `Total facturado — ${formatearMes(state.mes)}`;
-    document.getElementById("hero-cifra").textContent = money(data.totalFacturado);
+    document.getElementById("hero-cifra").textContent = money(totalFacturado);
     document.getElementById("hero-sub").innerHTML =
-      `<b>${data.cantidadFacturas}</b> facturas · <b>${data.porcentajeCobrado}%</b> cobrado · ${empresaLabel}`;
+      `<b>${lista.length}</b> facturas · <b>${porcentajeCobrado}%</b> cobrado · ${empresaLabel}${origenLabel}`;
 
-    const pct = Math.max(0, Math.min(100, data.porcentajeCobrado || 0));
+    const pct = Math.max(0, Math.min(100, porcentajeCobrado || 0));
     const circunferencia = 251.33;
     document.getElementById("gauge-arc").setAttribute(
       "stroke-dasharray",
@@ -333,48 +407,72 @@
     document.getElementById("gauge-pct").textContent = pct.toFixed(1) + "%";
 
     const contEmpresas = document.getElementById("seccion-empresas");
-    if (!state.empresa && data.porEmpresa && data.porEmpresa.length > 1){
-      contEmpresas.style.display = "flex";
-      const max = Math.max(...data.porEmpresa.map((e) => e.monto), 1);
-      contEmpresas.innerHTML = data.porEmpresa
-        .map(
-          (e) => `
-        <div class="empresa-row">
-          <div class="nombre">${e.empresa}</div>
-          <div class="barra-track"><div class="barra-fill" style="width:${(e.monto / max) * 100}%"></div></div>
-          <div class="monto mono">${money(e.monto)}</div>
-        </div>`
-        )
-        .join("");
+    if (!state.empresa){
+      const porEmpresaMap = new Map();
+      lista.forEach((f) => {
+        if (!porEmpresaMap.has(f.empresa)) porEmpresaMap.set(f.empresa, { empresa: f.empresa, monto: 0 });
+        porEmpresaMap.get(f.empresa).monto += f.monto;
+      });
+      const porEmpresa = Array.from(porEmpresaMap.values()).sort((a, b) => b.monto - a.monto);
+      if (porEmpresa.length > 1){
+        contEmpresas.style.display = "flex";
+        const max = Math.max(...porEmpresa.map((e) => e.monto), 1);
+        contEmpresas.innerHTML = porEmpresa
+          .map(
+            (e) => `
+          <div class="empresa-row">
+            <div class="nombre">${e.empresa}</div>
+            <div class="barra-track"><div class="barra-fill" style="width:${(e.monto / max) * 100}%"></div></div>
+            <div class="monto mono">${money(e.monto)}</div>
+          </div>`
+          )
+          .join("");
+      } else {
+        contEmpresas.style.display = "none";
+        contEmpresas.innerHTML = "";
+      }
     } else {
       contEmpresas.style.display = "none";
       contEmpresas.innerHTML = "";
     }
 
     const tbody = document.getElementById("tabla-body");
-    if (!data.porCliente || data.porCliente.length === 0){
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">Sin facturas en este período</td></tr>`;
+    if (lista.length === 0){
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:24px;">Sin facturas para este filtro</td></tr>`;
     } else {
-      tbody.innerHTML = data.porCliente
+      const visibles = lista.slice(0, state.filasVisibles);
+      tbody.innerHTML = visibles
         .map(
-          (c) => `
+          (f) => `
         <tr>
-          <td>${c.cliente}${!state.empresa ? `<div style="font-size:11.5px;color:var(--text-muted);">${c.empresa}</div>` : ""}</td>
-          <td class="num mono">${money(c.monto)}</td>
-          <td class="num mono">${money(c.cobrado)}</td>
-          <td class="num mono">${money(c.saldo)}</td>
-          <td class="num mono">${c.porcentaje}%</td>
-          <td class="num mono">${c.diasVencido || 0}</td>
-          <td>${badgeEstado(c.estado)}</td>
+          <td class="mono">${f.fecha || "-"}</td>
+          <td>${f.cliente}${!state.empresa ? `<div class="subtexto">${f.empresa}</div>` : ""}</td>
+          <td>${f.concepto || "-"}${f.comprobante ? `<div class="subtexto">${f.comprobante}</div>` : ""}</td>
+          <td>${f.origen || "-"}</td>
+          <td class="num mono">${money(f.monto)}</td>
+          <td class="num mono">${money(f.cobrado)}</td>
+          <td class="num mono">${money(f.saldo)}</td>
+          <td class="num mono">${f.porcentajeCobrado}%</td>
+          <td class="num mono">${f.diasVencido || 0}</td>
+          <td>${badgeEstado(f.estado)}</td>
         </tr>`
         )
         .join("");
     }
 
-    document.getElementById("pie-monto").textContent = money(data.totalFacturado);
-    document.getElementById("pie-cobrado").textContent = money(data.totalCobrado);
-    document.getElementById("pie-saldo").textContent = money(data.totalFacturado - data.totalCobrado);
-    document.getElementById("pie-pct").textContent = data.porcentajeCobrado + "%";
+    const btnMas = document.getElementById("btn-mostrar-mas");
+    if (lista.length > state.filasVisibles){
+      btnMas.style.display = "block";
+      btnMas.textContent = `Mostrar más (${lista.length - state.filasVisibles} restantes)`;
+    } else {
+      btnMas.style.display = "none";
+    }
+
+    document.getElementById("pie-cantidad").textContent = lista.length;
+    document.getElementById("pie-monto").textContent = money(totalFacturado);
+    document.getElementById("pie-cobrado").textContent = money(totalCobrado);
+    document.getElementById("pie-saldo").textContent = money(totalFacturado - totalCobrado);
+    document.getElementById("pie-pct").textContent = porcentajeCobrado + "%";
   }
 
   async function cargarDatos(){
@@ -391,7 +489,11 @@
       const resp = await fetch(url);
       if (!resp.ok) throw new Error(`El backend respondió ${resp.status}`);
       const data = await resp.json();
-      renderizar(data);
+      state.datos = data;
+      state.origen = "";
+      state.filasVisibles = FILAS_POR_PAGINA;
+      construirOpcionesOrigen(data.facturas || []);
+      renderizar();
     } catch (err){
       document.getElementById("estado-carga").textContent =
         "No se pudo cargar la información. Revisá la URL del backend (⚙ arriba a la derecha) y que esté activo. " +
@@ -411,6 +513,20 @@
       document.getElementById("config-panel").classList.remove("abierto");
       cargarDatos();
     }
+  });
+  document.getElementById("filtro-origen").addEventListener("change", (e) => {
+    state.origen = e.target.value;
+    state.filasVisibles = FILAS_POR_PAGINA;
+    renderizar();
+  });
+  document.getElementById("buscador").addEventListener("input", (e) => {
+    state.busqueda = e.target.value.trim();
+    state.filasVisibles = FILAS_POR_PAGINA;
+    renderizar();
+  });
+  document.getElementById("btn-mostrar-mas").addEventListener("click", () => {
+    state.filasVisibles += FILAS_POR_PAGINA;
+    renderizar();
   });
 
   pintarMeses();
