@@ -379,15 +379,25 @@
     if (!state.mes) state.mes = meses[meses.length - 1];
   }
 
-  function pintarFiltros(){
+  function actualizarClasesFiltros(){
     document.querySelectorAll(".filtro-chip").forEach((chip) => {
       chip.classList.toggle("activo", chip.dataset.empresa === state.empresa);
+    });
+  }
+
+  function pintarFiltros(){
+    // Los botones de empresa son fijos en el HTML (no se recrean), así que
+    // el listener se agrega UNA sola vez acá. El click solo actualiza clases
+    // y recarga datos — no vuelve a llamar a pintarFiltros (eso duplicaba
+    // el listener en cada click y terminaba disparando pedidos por decenas).
+    document.querySelectorAll(".filtro-chip").forEach((chip) => {
       chip.addEventListener("click", () => {
         state.empresa = chip.dataset.empresa;
-        pintarFiltros();
+        actualizarClasesFiltros();
         cargarDatos();
       });
     });
+    actualizarClasesFiltros();
   }
 
   function badgeEstado(estado){
