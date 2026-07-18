@@ -218,6 +218,7 @@
     <button class="filtro-chip" data-empresa="SIG">Salud Integral</button>
     <button class="filtro-chip" data-empresa="CEMEI">CEMEI</button>
     <button class="filtro-chip" data-empresa="NEO">Neoform</button>
+    <button class="filtro-chip" data-empresa="FARMACIA">Farmacia</button>
   </div>
 
   <div class="subfiltros" id="subfiltros">
@@ -583,7 +584,7 @@
         saldo,
         porcentajeCobrado: g.monto > 0 ? +((g.cobrado / g.monto) * 100).toFixed(2) : 0,
         diasVencido: 0,
-        estado: g.todasAnuladas ? "Anulada" : saldo <= 0.01 ? "Pagada" : "Vigente",
+        estado: g.todasAnuladas ? "Anulada" : saldo <= 0.1 ? "Pagada" : "Vigente",
       };
     });
 
