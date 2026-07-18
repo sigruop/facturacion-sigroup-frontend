@@ -513,23 +513,35 @@
     return (b.fecha || "").localeCompare(a.fecha || "");
   }
 
-  // Agrupa las facturas de origen "Particulares" en una sola fila por
-  // empresa/unidad (son muchas facturas chicas de pacientes individuales;
-  // el resto de las facturas se muestra sin agrupar, una fila por factura).
-  function agruparParticulares(lista){
-    const esParticular = (f) => (f.origen || "").toLowerCase().includes("particular");
-    const normales = lista.filter((f) => !esParticular(f));
-    const particulares = lista.filter(esParticular);
-    if (particulares.length === 0) return normales.slice().sort(ordenarPorFecha);
+  // Agrupa en una sola fila lo que no tiene sentido mostrar factura por
+  // factura: Particulares de CEMEI/Neo (una fila por empresa/unidad) y toda
+  // la facturación de Salud Integral (una fila por tipo: Pago de cuotas /
+  // Venta de ordenes). El resto se muestra sin agrupar, una fila por factura.
+  function claveAgrupado(f){
+    const esParticular = (f.origen || "").toLowerCase().includes("particular");
+    if (esParticular) return `PARTICULARES||${f.empresa}||${f.unidad || ""}`;
+    if (f.tipoFactura) return `TIPO||${f.empresa}||${f.tipoFactura}`;
+    return null;
+  }
 
+  function agruparDetalle(lista){
+    const individuales = [];
     const grupos = new Map();
-    particulares.forEach((f) => {
-      const key = `${f.empresa}||${f.unidad || ""}`;
+
+    lista.forEach((f) => {
+      const key = claveAgrupado(f);
+      if (!key){
+        individuales.push(f);
+        return;
+      }
       if (!grupos.has(key)){
+        const esParticular = key.startsWith("PARTICULARES||");
         grupos.set(key, {
           empresa: f.empresa,
           unidad: f.unidad,
+          tipoFactura: f.tipoFactura,
           origen: f.origen,
+          etiqueta: esParticular ? "Particulares" : f.tipoFactura,
           monto: 0,
           cobrado: 0,
           cantidadFacturas: 0,
@@ -551,8 +563,9 @@
         esAgregado: true,
         empresa: g.empresa,
         unidad: g.unidad,
-        cliente: "Particulares",
-        concepto: `${g.cantidadFacturas} factura${g.cantidadFacturas === 1 ? "" : "s"} particular${g.cantidadFacturas === 1 ? "" : "es"}`,
+        tipoFactura: g.tipoFactura,
+        cliente: g.etiqueta,
+        concepto: `${g.cantidadFacturas} factura${g.cantidadFacturas === 1 ? "" : "s"}`,
         comprobante: null,
         origen: g.origen,
         fecha: g.fechaMax,
@@ -565,7 +578,7 @@
       };
     });
 
-    return normales.concat(agregados).sort(ordenarPorFecha);
+    return individuales.concat(agregados).sort(ordenarPorFecha);
   }
 
   function renderizar(){
@@ -683,7 +696,7 @@
     }
 
     const tbody = document.getElementById("tabla-body");
-    const listaTabla = agruparParticulares(lista);
+    const listaTabla = agruparDetalle(lista);
     if (listaTabla.length === 0){
       tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:24px;">Sin facturas para este filtro</td></tr>`;
     } else {
