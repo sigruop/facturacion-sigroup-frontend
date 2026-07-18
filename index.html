@@ -169,6 +169,16 @@
 
   #estado-carga{padding:40px 0;text-align:center;color:var(--text-muted);font-size:14px;}
 
+  .modo-toggle{display:inline-flex;background:var(--surface-alt);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:16px;gap:2px;}
+  .modo-btn{border:none;background:transparent;padding:7px 18px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;}
+  .modo-btn.activo{background:var(--surface);color:var(--text-primary);box-shadow:0 1px 3px rgba(23,35,51,.1);}
+
+  #banner-aviso{
+    display:none;background:#EAF2FB;border:1px solid #C9DCF2;color:#2A5C8A;
+    border-radius:var(--radius);padding:12px 16px;font-size:13px;margin-bottom:18px;line-height:1.5;
+  }
+  #banner-aviso.visible{display:block;}
+
   footer{margin-top:30px;text-align:center;font-size:12px;color:var(--text-muted);}
 </style>
 </head>
@@ -185,6 +195,11 @@
       <button class="icon-btn" id="btn-config" title="Configurar backend" aria-label="Configurar backend">⚙</button>
     </div>
   </header>
+
+  <div class="modo-toggle" id="modo-toggle">
+    <button type="button" class="modo-btn activo" data-modo="facturacion">Facturación</button>
+    <button type="button" class="modo-btn" data-modo="cobrado">Cobros</button>
+  </div>
 
   <div id="config-panel">
     <label for="input-backend">URL del backend</label>
@@ -206,6 +221,10 @@
       <label for="filtro-unidad">Unidad</label>
       <select id="filtro-unidad"><option value="">Todas</option></select>
     </div>
+    <div class="campo" id="campo-tipo" style="display:none;">
+      <label for="filtro-tipo">Tipo</label>
+      <select id="filtro-tipo"><option value="">Todos</option></select>
+    </div>
     <div class="campo" id="campo-origen" style="display:none;">
       <label>Origen</label>
       <div class="multiselect" id="multiselect-origen">
@@ -217,6 +236,7 @@
   </div>
 
   <div id="banner-errores"></div>
+  <div id="banner-aviso"></div>
 
   <div id="estado-carga">Cargando datos…</div>
 
@@ -227,13 +247,17 @@
         <div class="cifra mono" id="hero-cifra">$0,00</div>
         <div class="sub" id="hero-sub"></div>
       </div>
-      <div class="card gauge-card">
+      <div class="card gauge-card" id="tarjeta-gauge">
         <div class="label">% cobrado</div>
         <svg viewBox="0 0 200 120" width="200" height="120">
           <path d="M20,100 A80,80 0 0 1 180,100" fill="none" stroke="var(--surface-alt)" stroke-width="16" stroke-linecap="round" />
           <path id="gauge-arc" d="M20,100 A80,80 0 0 1 180,100" fill="none" stroke="var(--accent)" stroke-width="16" stroke-linecap="round" stroke-dasharray="0 251.33" />
           <text id="gauge-pct" x="100" y="95" text-anchor="middle">0%</text>
         </svg>
+      </div>
+      <div class="card empresas" id="tarjeta-forma-pago" style="display:none;justify-content:center;">
+        <div class="label" style="margin-bottom:10px;">Por forma de pago</div>
+        <div id="lista-forma-pago"></div>
       </div>
     </section>
 
@@ -250,7 +274,7 @@
             <tr>
               <th>Fecha</th>
               <th>Cliente</th>
-              <th>Unidad</th>
+              <th>Unidad / Tipo</th>
               <th>Concepto</th>
               <th>Origen</th>
               <th class="num">Monto</th>
@@ -296,9 +320,11 @@
   const FILAS_POR_PAGINA = 50;
 
   const state = {
+    modo: "facturacion",  // "facturacion" (realizado) | "cobrado" (cash-basis)
     mes: null,        // "2026-06"
     empresa: "",       // "" = todas, o SIG / CEMEI / NEO
     unidad: "",         // "" = todas (CEMEI SRL / CEMEI ODONTOLOGIA / MEDICINA LABORAL / etc.)
+    tipoFactura: "",     // "" = todos (Pago de cuotas / Venta de ordenes, propio de Salud Integral)
     origenes: [],        // [] = todos, o varios origenes seleccionados
     busqueda: "",
     filasVisibles: FILAS_POR_PAGINA,
@@ -461,6 +487,7 @@
   function facturasFiltradas(){
     let lista = (state.datos && state.datos.facturas) || [];
     if (state.unidad) lista = lista.filter((f) => f.unidad === state.unidad);
+    if (state.tipoFactura) lista = lista.filter((f) => f.tipoFactura === state.tipoFactura);
     if (state.origenes.length > 0) lista = lista.filter((f) => state.origenes.includes(f.origen));
     if (state.busqueda){
       const q = state.busqueda.toLowerCase();
@@ -547,9 +574,23 @@
       bannerErrores.innerHTML = "";
     }
 
+    const bannerAviso = document.getElementById("banner-aviso");
+    const aviso = state.datos && state.datos.aviso;
+    if (aviso){
+      bannerAviso.classList.add("visible");
+      bannerAviso.textContent = aviso;
+    } else {
+      bannerAviso.classList.remove("visible");
+      bannerAviso.textContent = "";
+    }
+
+    const esCobros = state.modo === "cobrado";
+    const campoValor = esCobros ? "cobrado" : "monto";
+
     const lista = facturasFiltradas();
     const totalFacturado = lista.reduce((a, f) => a + f.monto, 0);
     const totalCobrado = lista.reduce((a, f) => a + f.cobrado, 0);
+    const totalPrincipal = lista.reduce((a, f) => a + f[campoValor], 0);
     const porcentajeCobrado = totalFacturado > 0 ? +((totalCobrado / totalFacturado) * 100).toFixed(2) : 0;
 
     const empresaLabel = state.empresa
@@ -557,25 +598,56 @@
       : "todas las empresas";
     const origenLabel = state.origenes.length > 0 ? ` · origen: ${state.origenes.join(", ")}` : "";
     const unidadLabel = state.unidad ? ` · unidad: ${state.unidad}` : "";
-    document.getElementById("hero-label").textContent = `Total facturado — ${formatearMes(state.mes)}`;
-    document.getElementById("hero-cifra").textContent = money(totalFacturado);
+    const tipoLabel = state.tipoFactura ? ` · tipo: ${state.tipoFactura}` : "";
+    document.getElementById("hero-label").textContent =
+      `${esCobros ? "Total cobrado" : "Total facturado"} — ${formatearMes(state.mes)}`;
+    document.getElementById("hero-cifra").textContent = money(totalPrincipal);
+    const cantidadTexto = `<b>${lista.length}</b> ${esCobros ? "cobros" : "facturas"}`;
+    const porcentajeTexto = esCobros ? "" : ` · <b>${porcentajeCobrado}%</b> cobrado`;
     document.getElementById("hero-sub").innerHTML =
-      `<b>${lista.length}</b> facturas · <b>${porcentajeCobrado}%</b> cobrado · ${empresaLabel}${unidadLabel}${origenLabel}`;
+      `${cantidadTexto}${porcentajeTexto} · ${empresaLabel}${unidadLabel}${tipoLabel}${origenLabel}`;
 
-    const pct = Math.max(0, Math.min(100, porcentajeCobrado || 0));
-    const circunferencia = 251.33;
-    document.getElementById("gauge-arc").setAttribute(
-      "stroke-dasharray",
-      `${(pct / 100) * circunferencia} ${circunferencia}`
-    );
-    document.getElementById("gauge-pct").textContent = pct.toFixed(1) + "%";
+    document.getElementById("tarjeta-gauge").style.display = esCobros ? "none" : "flex";
+    document.getElementById("tarjeta-forma-pago").style.display = esCobros ? "flex" : "none";
+
+    if (esCobros){
+      const porFormaMap = new Map();
+      lista.forEach((f) => {
+        const clave = f.formaPago || "Sin especificar";
+        porFormaMap.set(clave, (porFormaMap.get(clave) || 0) + f.cobrado);
+      });
+      const porForma = Array.from(porFormaMap.entries())
+        .map(([forma, monto]) => ({ forma, monto }))
+        .sort((a, b) => b.monto - a.monto);
+      const maxForma = Math.max(...porForma.map((f) => f.monto), 1);
+      document.getElementById("lista-forma-pago").innerHTML = porForma.length
+        ? porForma
+            .map(
+              (f) => `
+          <div class="empresa-row" style="grid-template-columns:110px 1fr 90px;">
+            <div class="nombre">${escaparHtml(f.forma)}</div>
+            <div class="barra-track"><div class="barra-fill" style="width:${(f.monto / maxForma) * 100}%"></div></div>
+            <div class="monto mono">${money(f.monto)}</div>
+          </div>`
+            )
+            .join("")
+        : `<div style="color:var(--text-muted);font-size:13px;">Sin datos</div>`;
+    } else {
+      const pct = Math.max(0, Math.min(100, porcentajeCobrado || 0));
+      const circunferencia = 251.33;
+      document.getElementById("gauge-arc").setAttribute(
+        "stroke-dasharray",
+        `${(pct / 100) * circunferencia} ${circunferencia}`
+      );
+      document.getElementById("gauge-pct").textContent = pct.toFixed(1) + "%";
+    }
 
     const contEmpresas = document.getElementById("seccion-empresas");
     if (!state.empresa){
       const porEmpresaMap = new Map();
       lista.forEach((f) => {
         if (!porEmpresaMap.has(f.empresa)) porEmpresaMap.set(f.empresa, { empresa: f.empresa, monto: 0 });
-        porEmpresaMap.get(f.empresa).monto += f.monto;
+        porEmpresaMap.get(f.empresa).monto += f[campoValor];
       });
       const porEmpresa = Array.from(porEmpresaMap.values()).sort((a, b) => b.monto - a.monto);
       if (porEmpresa.length > 1){
@@ -612,7 +684,7 @@
         <tr>
           <td class="mono">${f.esAgregado ? "Varias" : (f.fecha || "-")}</td>
           <td>${f.cliente}${!state.empresa ? `<div class="subtexto">${f.empresa}</div>` : ""}</td>
-          <td>${f.unidad || "-"}</td>
+          <td>${f.unidad || f.tipoFactura || "-"}</td>
           <td title="${escaparHtml(f.concepto)}">${simplificarConcepto(f.concepto)}${f.comprobante ? `<div class="subtexto">${escaparHtml(f.comprobante)}</div>` : ""}</td>
           <td>${f.origen || "-"}</td>
           <td class="num mono">${money(f.monto)}</td>
@@ -649,17 +721,23 @@
     const desde = `${state.mes}-01`;
     const hasta = ultimoDiaDeMes(state.mes);
     const empresaParam = state.empresa ? `&empresa=${state.empresa}` : "";
-    const url = `${CONFIG.backendUrl}/api/facturacion?desde=${desde}&hasta=${hasta}${empresaParam}`;
+    const recurso = state.modo === "cobrado" ? "cobros" : "facturacion";
+    const url = `${CONFIG.backendUrl}/api/${recurso}?desde=${desde}&hasta=${hasta}${empresaParam}`;
 
     try {
       const resp = await fetch(url);
       if (!resp.ok) throw new Error(`El backend respondió ${resp.status}`);
       const data = await resp.json();
-      state.datos = data;
+      // Normalizamos: en modo cobrado el backend devuelve "cobros" en vez de
+      // "facturas", pero es la misma forma de registro — así el resto del
+      // código (filtros, tabla, agrupados) funciona igual en los dos modos.
+      state.datos = { ...data, facturas: state.modo === "cobrado" ? data.cobros || [] : data.facturas || [] };
       state.unidad = "";
+      state.tipoFactura = "";
       state.origenes = [];
       state.filasVisibles = FILAS_POR_PAGINA;
       construirOpciones("unidad", "filtro-unidad", "campo-unidad", state.unidad, "Todas");
+      construirOpciones("tipoFactura", "filtro-tipo", "campo-tipo", state.tipoFactura, "Todos");
       construirMultiselectOrigen();
       renderizar();
     } catch (err){
@@ -669,6 +747,14 @@
     }
   }
 
+  document.querySelectorAll(".modo-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.modo === state.modo) return;
+      state.modo = btn.dataset.modo;
+      document.querySelectorAll(".modo-btn").forEach((b) => b.classList.toggle("activo", b === btn));
+      cargarDatos();
+    });
+  });
   document.getElementById("btn-config").addEventListener("click", () => {
     const panel = document.getElementById("config-panel");
     panel.classList.toggle("abierto");
@@ -684,6 +770,11 @@
   });
   document.getElementById("filtro-unidad").addEventListener("change", (e) => {
     state.unidad = e.target.value;
+    state.filasVisibles = FILAS_POR_PAGINA;
+    renderizar();
+  });
+  document.getElementById("filtro-tipo").addEventListener("change", (e) => {
+    state.tipoFactura = e.target.value;
     state.filasVisibles = FILAS_POR_PAGINA;
     renderizar();
   });
