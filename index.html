@@ -79,7 +79,7 @@
   .filtro-chip.activo{background:var(--accent-light);border-color:var(--accent);color:var(--accent-dark);}
 
   .subfiltros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:22px;}
-  .subfiltros .campo{display:flex;align-items:center;gap:6px;}
+  .subfiltros .campo{display:flex;align-items:center;gap:6px;position:relative;}
   .subfiltros label{font-size:11.5px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
   .subfiltros select, .subfiltros input[type="search"]{
     border:1px solid var(--border);background:var(--surface);border-radius:8px;
@@ -87,6 +87,31 @@
   }
   .subfiltros input[type="search"]{flex:1;min-width:200px;}
   .subfiltros select{min-width:170px;}
+
+  .multiselect{position:relative;}
+  .multiselect-boton{
+    border:1px solid var(--border);background:var(--surface);border-radius:8px;
+    padding:7px 28px 7px 12px;font-size:13px;color:var(--text-primary);font-family:inherit;
+    cursor:pointer;min-width:170px;text-align:left;position:relative;
+  }
+  .multiselect-boton::after{
+    content:"";position:absolute;right:11px;top:50%;margin-top:-2px;
+    border:5px solid transparent;border-top-color:var(--text-muted);
+  }
+  .multiselect-boton:hover{border-color:var(--accent);}
+  .multiselect-panel{
+    display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:20;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    box-shadow:0 10px 28px rgba(23,35,51,.14);padding:6px;min-width:230px;
+    max-height:260px;overflow-y:auto;
+  }
+  .multiselect-panel.abierto{display:block;}
+  .multiselect-opcion{
+    display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:6px;
+    font-size:13px;cursor:pointer;color:var(--text-primary);
+  }
+  .multiselect-opcion:hover{background:var(--surface-alt);}
+  .multiselect-opcion input{accent-color:var(--accent);width:15px;height:15px;flex:0 0 auto;}
 
   #banner-errores{
     display:none;background:var(--warning-light);border:1px solid #EBD2A8;color:var(--warning);
@@ -182,8 +207,11 @@
       <select id="filtro-unidad"><option value="">Todas</option></select>
     </div>
     <div class="campo" id="campo-origen" style="display:none;">
-      <label for="filtro-origen">Origen</label>
-      <select id="filtro-origen"><option value="">Todos</option></select>
+      <label>Origen</label>
+      <div class="multiselect" id="multiselect-origen">
+        <button type="button" class="multiselect-boton" id="btn-origen">Todos</button>
+        <div class="multiselect-panel" id="panel-origen"></div>
+      </div>
     </div>
     <input type="search" id="buscador" placeholder="Buscar por cliente o concepto…" />
   </div>
@@ -271,7 +299,7 @@
     mes: null,        // "2026-06"
     empresa: "",       // "" = todas, o SIG / CEMEI / NEO
     unidad: "",         // "" = todas (CEMEI SRL / CEMEI ODONTOLOGIA / MEDICINA LABORAL / etc.)
-    origen: "",         // "" = todos
+    origenes: [],        // [] = todos, o varios origenes seleccionados
     busqueda: "",
     filasVisibles: FILAS_POR_PAGINA,
     datos: null,        // última respuesta cruda del backend
@@ -383,10 +411,57 @@
     select.value = valorActual;
   }
 
+  function actualizarBotonOrigen(opciones){
+    const btn = document.getElementById("btn-origen");
+    if (state.origenes.length === 0 || state.origenes.length === opciones.length){
+      btn.textContent = "Todos";
+    } else if (state.origenes.length === 1){
+      btn.textContent = state.origenes[0];
+    } else {
+      btn.textContent = `${state.origenes.length} seleccionados`;
+    }
+  }
+
+  function construirMultiselectOrigen(){
+    const valores = new Set();
+    (state.datos && state.datos.facturas || []).forEach((f) => { if (f.origen) valores.add(f.origen); });
+    const campo = document.getElementById("campo-origen");
+    const panel = document.getElementById("panel-origen");
+    if (valores.size === 0){
+      campo.style.display = "none";
+      panel.innerHTML = "";
+      return;
+    }
+    campo.style.display = "flex";
+    const opciones = Array.from(valores).sort();
+    panel.innerHTML = opciones
+      .map(
+        (v) => `
+      <label class="multiselect-opcion">
+        <input type="checkbox" value="${escaparHtml(v)}" ${state.origenes.includes(v) ? "checked" : ""} />
+        <span>${escaparHtml(v)}</span>
+      </label>`
+      )
+      .join("");
+    panel.querySelectorAll('input[type="checkbox"]').forEach((chk) => {
+      chk.addEventListener("change", () => {
+        if (chk.checked){
+          if (!state.origenes.includes(chk.value)) state.origenes.push(chk.value);
+        } else {
+          state.origenes = state.origenes.filter((v) => v !== chk.value);
+        }
+        state.filasVisibles = FILAS_POR_PAGINA;
+        actualizarBotonOrigen(opciones);
+        renderizar();
+      });
+    });
+    actualizarBotonOrigen(opciones);
+  }
+
   function facturasFiltradas(){
     let lista = (state.datos && state.datos.facturas) || [];
     if (state.unidad) lista = lista.filter((f) => f.unidad === state.unidad);
-    if (state.origen) lista = lista.filter((f) => f.origen === state.origen);
+    if (state.origenes.length > 0) lista = lista.filter((f) => state.origenes.includes(f.origen));
     if (state.busqueda){
       const q = state.busqueda.toLowerCase();
       lista = lista.filter((f) =>
@@ -480,7 +555,7 @@
     const empresaLabel = state.empresa
       ? document.querySelector(`.filtro-chip[data-empresa="${state.empresa}"]`).textContent
       : "todas las empresas";
-    const origenLabel = state.origen ? ` · origen: ${state.origen}` : "";
+    const origenLabel = state.origenes.length > 0 ? ` · origen: ${state.origenes.join(", ")}` : "";
     const unidadLabel = state.unidad ? ` · unidad: ${state.unidad}` : "";
     document.getElementById("hero-label").textContent = `Total facturado — ${formatearMes(state.mes)}`;
     document.getElementById("hero-cifra").textContent = money(totalFacturado);
@@ -582,10 +657,10 @@
       const data = await resp.json();
       state.datos = data;
       state.unidad = "";
-      state.origen = "";
+      state.origenes = [];
       state.filasVisibles = FILAS_POR_PAGINA;
       construirOpciones("unidad", "filtro-unidad", "campo-unidad", state.unidad, "Todas");
-      construirOpciones("origen", "filtro-origen", "campo-origen", state.origen, "Todos");
+      construirMultiselectOrigen();
       renderizar();
     } catch (err){
       document.getElementById("estado-carga").textContent =
@@ -612,10 +687,16 @@
     state.filasVisibles = FILAS_POR_PAGINA;
     renderizar();
   });
-  document.getElementById("filtro-origen").addEventListener("change", (e) => {
-    state.origen = e.target.value;
-    state.filasVisibles = FILAS_POR_PAGINA;
-    renderizar();
+  document.getElementById("btn-origen").addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.getElementById("panel-origen").classList.toggle("abierto");
+  });
+  document.addEventListener("click", (e) => {
+    const panel = document.getElementById("panel-origen");
+    const contenedor = document.getElementById("multiselect-origen");
+    if (panel.classList.contains("abierto") && !contenedor.contains(e.target)){
+      panel.classList.remove("abierto");
+    }
   });
   document.getElementById("buscador").addEventListener("input", (e) => {
     state.busqueda = e.target.value.trim();
