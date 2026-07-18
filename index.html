@@ -341,6 +341,28 @@
     return `<span class="badge ${clase}">${estado}</span>`;
   }
 
+  function escaparHtml(texto){
+    return String(texto || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  const LONGITUD_MAX_CONCEPTO = 90;
+
+  // Algunos conceptos (facturas con muchas obras sociales o muchos ítems
+  // agrupados) vienen kilométricos. Si hay un "Periodo X/AAAA" repetido, con
+  // eso alcanza (el cliente ya se ve en su columna). Si no hay ese patrón,
+  // truncamos y dejamos el texto completo como tooltip.
+  function simplificarConcepto(concepto){
+    if (!concepto) return "-";
+    if (concepto.length <= LONGITUD_MAX_CONCEPTO) return escaparHtml(concepto);
+    const periodo = concepto.match(/Periodo\s+\d{1,2}\/\d{4}(\s*-\s*[A-Za-zÁÉÍÓÚñÑ]+)?/);
+    if (periodo) return escaparHtml(periodo[0]);
+    return escaparHtml(concepto.slice(0, LONGITUD_MAX_CONCEPTO)) + "…";
+  }
+
   function construirOpciones(campoDato, selectId, contenedorId, valorActual, textoDefault){
     const valores = new Set();
     (state.datos && state.datos.facturas || []).forEach((f) => { if (f[campoDato]) valores.add(f[campoDato]); });
@@ -516,7 +538,7 @@
           <td class="mono">${f.esAgregado ? "Varias" : (f.fecha || "-")}</td>
           <td>${f.cliente}${!state.empresa ? `<div class="subtexto">${f.empresa}</div>` : ""}</td>
           <td>${f.unidad || "-"}</td>
-          <td>${f.concepto || "-"}${f.comprobante ? `<div class="subtexto">${f.comprobante}</div>` : ""}</td>
+          <td title="${escaparHtml(f.concepto)}">${simplificarConcepto(f.concepto)}${f.comprobante ? `<div class="subtexto">${escaparHtml(f.comprobante)}</div>` : ""}</td>
           <td>${f.origen || "-"}</td>
           <td class="num mono">${money(f.monto)}</td>
           <td class="num mono">${money(f.cobrado)}</td>
