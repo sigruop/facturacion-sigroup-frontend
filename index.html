@@ -137,6 +137,10 @@
   #gauge-pct{font-size:26px;font-weight:600;fill:var(--text-primary);font-family:"IBM Plex Mono",monospace;}
 
   .empresas{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+
+  .stat-comercial .label{font-size:12px;color:var(--text-secondary);margin-bottom:4px;}
+  .stat-comercial .valor{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:20px;font-weight:600;color:var(--text-primary);}
+  .stat-comercial.destacado .valor{color:var(--accent-dark);font-size:24px;}
   .empresa-row{display:grid;grid-template-columns:170px 1fr 110px;align-items:center;gap:12px;font-size:13px;}
   .empresa-row .nombre{font-weight:600;color:var(--text-primary);}
   .empresa-row .barra-track{background:var(--surface-alt);border:1px solid var(--border);border-radius:999px;height:10px;overflow:hidden;}
@@ -259,6 +263,11 @@
         <div class="label" style="margin-bottom:10px;">Por forma de pago</div>
         <div id="lista-forma-pago"></div>
       </div>
+    </section>
+
+    <section class="card" id="tarjeta-resumen-comercial" style="display:none;margin-bottom:18px;">
+      <p class="eyebrow" style="margin-bottom:4px;">Datos comerciales de Salud Integral · carga manual (Excel)</p>
+      <div id="grid-resumen-comercial" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(190px,1fr));gap:18px;margin-top:6px;"></div>
     </section>
 
     <section class="card empresas" id="seccion-empresas" style="margin-bottom:18px;"></section>
@@ -663,6 +672,32 @@
         `${(pct / 100) * circunferencia} ${circunferencia}`
       );
       document.getElementById("gauge-pct").textContent = pct.toFixed(1) + "%";
+    }
+
+    const resumenComercial = state.datos && state.datos.resumenComercialSIG;
+    const tarjetaComercial = document.getElementById("tarjeta-resumen-comercial");
+    if (resumenComercial) {
+      tarjetaComercial.style.display = "block";
+      const r = resumenComercial;
+      const stats = [
+        { label: "Cápitas nuevas", valor: r.capitasNuevas, destacado: false },
+        { label: "Planes superadores/adherentes", valor: r.planesSuperadoresAdherentes, destacado: false },
+        { label: "Recaudación Obra Social", valor: money(r.recaudacionObraSocial), destacado: false },
+        { label: "Recaudación Prepaga", valor: money(r.recaudacionPrepaga), destacado: false },
+        { label: "Recaudación Planes Superadores/Adherentes", valor: money(r.recaudacionPlanesSuperadores), destacado: false },
+        { label: "Recaudación total", valor: money(r.recaudacionTotal), destacado: true },
+      ];
+      document.getElementById("grid-resumen-comercial").innerHTML = stats
+        .map(
+          (s) => `
+        <div class="stat-comercial${s.destacado ? " destacado" : ""}">
+          <div class="label">${s.label}</div>
+          <div class="valor">${s.valor}</div>
+        </div>`
+        )
+        .join("");
+    } else {
+      tarjetaComercial.style.display = "none";
     }
 
     const contEmpresas = document.getElementById("seccion-empresas");
