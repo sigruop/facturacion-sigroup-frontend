@@ -147,6 +147,14 @@
   .empresa-row .barra-fill{background:var(--accent);height:100%;border-radius:999px;}
   .empresa-row .monto{text-align:right;color:var(--text-secondary);}
 
+  .fp-row{margin-bottom:14px;}
+  .fp-row:last-child{margin-bottom:0;}
+  .fp-row .fp-label{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:5px;}
+  .fp-row .fp-linea{display:flex;align-items:center;gap:10px;}
+  .fp-row .barra-track{flex:1;background:var(--surface-alt);border:1px solid var(--border);border-radius:999px;height:10px;overflow:hidden;}
+  .fp-row .barra-fill{background:var(--accent);height:100%;border-radius:999px;}
+  .fp-row .fp-monto{flex:0 0 auto;min-width:120px;text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:13px;color:var(--text-secondary);}
+
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
   thead th{
     text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);
@@ -267,7 +275,7 @@
     </section>
 
     <section class="card" id="tarjeta-resumen-comercial" style="display:none;margin-bottom:18px;">
-      <p class="eyebrow" style="margin-bottom:4px;">Datos comerciales de Salud Integral · carga manual (Excel)</p>
+      <p class="eyebrow" style="margin-bottom:4px;">Datos comerciales de Salud Integral</p>
       <div id="grid-resumen-comercial" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(190px,1fr));gap:18px;margin-top:6px;"></div>
     </section>
 
@@ -657,10 +665,12 @@
         ? porForma
             .map(
               (f) => `
-          <div class="empresa-row" style="grid-template-columns:110px 1fr 90px;">
-            <div class="nombre">${escaparHtml(f.forma)}</div>
-            <div class="barra-track"><div class="barra-fill" style="width:${(f.monto / maxForma) * 100}%"></div></div>
-            <div class="monto mono">${money(f.monto)}</div>
+          <div class="fp-row">
+            <div class="fp-label">${escaparHtml(f.forma)}</div>
+            <div class="fp-linea">
+              <div class="barra-track"><div class="barra-fill" style="width:${(f.monto / maxForma) * 100}%"></div></div>
+              <div class="fp-monto">${money(f.monto)}</div>
+            </div>
           </div>`
             )
             .join("")
