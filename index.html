@@ -742,6 +742,33 @@
         contEmpresas.style.display = "none";
         contEmpresas.innerHTML = "";
       }
+    } else if (state.empresa === "SIG"){
+      const porTipoMap = new Map();
+      lista.forEach((f) => {
+        const clave = f.tipoFactura || "Sin clasificar";
+        if (!porTipoMap.has(clave)) porTipoMap.set(clave, { nombre: clave, monto: 0 });
+        porTipoMap.get(clave).monto += f[campoValor];
+      });
+      const porTipo = Array.from(porTipoMap.values())
+        .filter((t) => t.monto > 0)
+        .sort((a, b) => b.monto - a.monto);
+      if (porTipo.length > 1){
+        contEmpresas.style.display = "flex";
+        const max = Math.max(...porTipo.map((t) => t.monto), 1);
+        contEmpresas.innerHTML = porTipo
+          .map(
+            (t) => `
+          <div class="empresa-row">
+            <div class="nombre">${escaparHtml(t.nombre)}</div>
+            <div class="barra-track"><div class="barra-fill" style="width:${(t.monto / max) * 100}%"></div></div>
+            <div class="monto mono">${money(t.monto)}</div>
+          </div>`
+          )
+          .join("");
+      } else {
+        contEmpresas.style.display = "none";
+        contEmpresas.innerHTML = "";
+      }
     } else {
       contEmpresas.style.display = "none";
       contEmpresas.innerHTML = "";
