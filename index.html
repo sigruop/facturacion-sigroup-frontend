@@ -424,6 +424,27 @@
     actualizarClasesFiltros();
   }
 
+  function pintarBarras(contenedor, items){
+    const filtrados = items.filter((i) => i.monto > 0).sort((a, b) => b.monto - a.monto);
+    if (filtrados.length <= 1){
+      contenedor.style.display = "none";
+      contenedor.innerHTML = "";
+      return;
+    }
+    contenedor.style.display = "flex";
+    const max = Math.max(...filtrados.map((i) => i.monto), 1);
+    contenedor.innerHTML = filtrados
+      .map(
+        (i) => `
+      <div class="empresa-row">
+        <div class="nombre">${escaparHtml(i.nombre)}</div>
+        <div class="barra-track"><div class="barra-fill" style="width:${(i.monto / max) * 100}%"></div></div>
+        <div class="monto mono">${money(i.monto)}</div>
+      </div>`
+      )
+      .join("");
+  }
+
   function badgeEstado(estado){
     const clase = estado === "Pagada" ? "pagada" : estado === "Anulada" ? "anulada" : "vigente";
     return `<span class="badge ${clase}">${estado}</span>`;
@@ -721,27 +742,10 @@
     if (!state.empresa){
       const porEmpresaMap = new Map();
       lista.forEach((f) => {
-        if (!porEmpresaMap.has(f.empresa)) porEmpresaMap.set(f.empresa, { empresa: f.empresa, monto: 0 });
+        if (!porEmpresaMap.has(f.empresa)) porEmpresaMap.set(f.empresa, { nombre: f.empresa, monto: 0 });
         porEmpresaMap.get(f.empresa).monto += f[campoValor];
       });
-      const porEmpresa = Array.from(porEmpresaMap.values()).sort((a, b) => b.monto - a.monto);
-      if (porEmpresa.length > 1){
-        contEmpresas.style.display = "flex";
-        const max = Math.max(...porEmpresa.map((e) => e.monto), 1);
-        contEmpresas.innerHTML = porEmpresa
-          .map(
-            (e) => `
-          <div class="empresa-row">
-            <div class="nombre">${e.empresa}</div>
-            <div class="barra-track"><div class="barra-fill" style="width:${(e.monto / max) * 100}%"></div></div>
-            <div class="monto mono">${money(e.monto)}</div>
-          </div>`
-          )
-          .join("");
-      } else {
-        contEmpresas.style.display = "none";
-        contEmpresas.innerHTML = "";
-      }
+      pintarBarras(contEmpresas, Array.from(porEmpresaMap.values()));
     } else if (state.empresa === "SIG"){
       const porTipoMap = new Map();
       lista.forEach((f) => {
@@ -749,26 +753,15 @@
         if (!porTipoMap.has(clave)) porTipoMap.set(clave, { nombre: clave, monto: 0 });
         porTipoMap.get(clave).monto += f[campoValor];
       });
-      const porTipo = Array.from(porTipoMap.values())
-        .filter((t) => t.monto > 0)
-        .sort((a, b) => b.monto - a.monto);
-      if (porTipo.length > 1){
-        contEmpresas.style.display = "flex";
-        const max = Math.max(...porTipo.map((t) => t.monto), 1);
-        contEmpresas.innerHTML = porTipo
-          .map(
-            (t) => `
-          <div class="empresa-row">
-            <div class="nombre">${escaparHtml(t.nombre)}</div>
-            <div class="barra-track"><div class="barra-fill" style="width:${(t.monto / max) * 100}%"></div></div>
-            <div class="monto mono">${money(t.monto)}</div>
-          </div>`
-          )
-          .join("");
-      } else {
-        contEmpresas.style.display = "none";
-        contEmpresas.innerHTML = "";
-      }
+      pintarBarras(contEmpresas, Array.from(porTipoMap.values()));
+    } else if (state.empresa === "CEMEI"){
+      const porOrigenMap = new Map();
+      lista.forEach((f) => {
+        const clave = f.origen || "Sin origen";
+        if (!porOrigenMap.has(clave)) porOrigenMap.set(clave, { nombre: clave, monto: 0 });
+        porOrigenMap.get(clave).monto += f[campoValor];
+      });
+      pintarBarras(contEmpresas, Array.from(porOrigenMap.values()));
     } else {
       contEmpresas.style.display = "none";
       contEmpresas.innerHTML = "";
