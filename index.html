@@ -351,6 +351,7 @@
   const state = {
     modo: "facturacion",  // "facturacion" (realizado) | "cobrado" (cash-basis)
     mes: null,        // "2026-06"
+    todosLosMeses: false, // solo aplica en modo deuda
     empresa: "",       // "" = todas, o SIG / CEMEI / NEO
     unidad: "",         // "" = todas (CEMEI SRL / CEMEI ODONTOLOGIA / MEDICINA LABORAL / etc.)
     tipoFactura: "",     // "" = todos (Pago de cuotas / Venta de ordenes, propio de Salud Integral)
@@ -393,13 +394,27 @@
   function pintarMeses(){
     const cont = document.getElementById("meses");
     cont.innerHTML = "";
+
+    if (state.modo === "deuda"){
+      const btnTodos = document.createElement("button");
+      btnTodos.className = "mes-pill" + (state.todosLosMeses ? " activo" : "");
+      btnTodos.textContent = "Todo el histórico";
+      btnTodos.addEventListener("click", () => {
+        state.todosLosMeses = true;
+        pintarMeses();
+        cargarDatos();
+      });
+      cont.appendChild(btnTodos);
+    }
+
     const meses = generarMeses();
     meses.forEach((m) => {
       const btn = document.createElement("button");
-      btn.className = "mes-pill" + (m === state.mes ? " activo" : "");
+      btn.className = "mes-pill" + (m === state.mes && !state.todosLosMeses ? " activo" : "");
       btn.textContent = m;
       btn.addEventListener("click", () => {
         state.mes = m;
+        state.todosLosMeses = false;
         pintarMeses();
         cargarDatos();
       });
@@ -675,7 +690,8 @@
     const unidadLabel = state.unidad ? ` · unidad: ${state.unidad}` : "";
     const tipoLabel = state.tipoFactura ? ` · tipo: ${state.tipoFactura}` : "";
     const etiquetaHero = { facturacion: "Total facturado", cobrado: "Total cobrado", deuda: "Total adeudado" }[modo];
-    document.getElementById("hero-label").textContent = `${etiquetaHero} — ${formatearMes(state.mes)}`;
+    const periodoTexto = state.todosLosMeses ? "histórico completo" : formatearMes(state.mes);
+    document.getElementById("hero-label").textContent = `${etiquetaHero} — ${periodoTexto}`;
     document.getElementById("hero-cifra").textContent = money(totalPrincipal);
     const palabraCantidad = modo === "cobrado" ? "cobros" : "facturas";
     const cantidadTexto = `<b>${lista.length}</b> ${palabraCantidad}`;
@@ -854,7 +870,8 @@
     const hasta = ultimoDiaDeMes(state.mes);
     const empresaParam = state.empresa ? `&empresa=${state.empresa}` : "";
     const recurso = { facturacion: "facturacion", cobrado: "cobros", deuda: "deuda" }[state.modo];
-    const url = `${CONFIG.backendUrl}/api/${recurso}?desde=${desde}&hasta=${hasta}${empresaParam}`;
+    const todosParam = state.modo === "deuda" && state.todosLosMeses ? "&todos=1" : "";
+    const url = `${CONFIG.backendUrl}/api/${recurso}?desde=${desde}&hasta=${hasta}${empresaParam}${todosParam}`;
 
     try {
       const resp = await fetch(url);
@@ -883,7 +900,9 @@
     btn.addEventListener("click", () => {
       if (btn.dataset.modo === state.modo) return;
       state.modo = btn.dataset.modo;
+      state.todosLosMeses = false;
       document.querySelectorAll(".modo-btn").forEach((b) => b.classList.toggle("activo", b === btn));
+      pintarMeses();
       cargarDatos();
     });
   });
