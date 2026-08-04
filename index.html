@@ -609,6 +609,8 @@
           etiqueta: esParticular ? "Particulares" : f.tipoFactura,
           monto: 0,
           cobrado: 0,
+          saldo: 0,
+          debitos: 0,
           cantidadFacturas: 0,
           fechaMax: f.fecha || "",
           todasAnuladas: true,
@@ -617,13 +619,14 @@
       const g = grupos.get(key);
       g.monto += f.monto;
       g.cobrado += f.cobrado;
+      g.saldo += f.saldo || 0;
+      g.debitos += f.debitos || 0;
       g.cantidadFacturas += 1;
       if (!f.anulado) g.todasAnuladas = false;
       if ((f.fecha || "") > g.fechaMax) g.fechaMax = f.fecha || "";
     });
 
     const agregados = Array.from(grupos.values()).map((g) => {
-      const saldo = Math.max(g.monto - g.cobrado, 0);
       return {
         esAgregado: true,
         empresa: g.empresa,
@@ -636,10 +639,11 @@
         fecha: g.fechaMax,
         monto: g.monto,
         cobrado: g.cobrado,
-        saldo,
+        saldo: g.saldo,
+        debitos: g.debitos,
         porcentajeCobrado: g.monto > 0 ? +((g.cobrado / g.monto) * 100).toFixed(2) : 0,
         diasVencido: 0,
-        estado: g.todasAnuladas ? "Anulada" : saldo <= 0.1 ? "Pagada" : "Vigente",
+        estado: g.todasAnuladas ? "Anulada" : g.saldo <= 0.1 ? "Pagada" : "Vigente",
       };
     });
 
@@ -836,7 +840,7 @@
           <td title="${escaparHtml(f.concepto)}">${simplificarConcepto(f.concepto)}${f.comprobante ? `<div class="subtexto">${escaparHtml(f.comprobante)}</div>` : ""}</td>
           <td>${f.origen || "-"}</td>
           <td class="num mono">${money(f.monto)}</td>
-          <td class="num mono">${money(f.cobrado)}</td>
+          <td class="num mono">${money(f.cobrado)}${f.debitos > 0 ? `<div class="subtexto" style="color:var(--danger);">Débito: ${money(f.debitos)}</div>` : ""}</td>
           <td class="num mono">${money(f.saldo)}</td>
           <td class="num mono">${f.porcentajeCobrado}%</td>
           <td class="num mono">${f.diasVencido || 0}</td>
@@ -854,9 +858,12 @@
       btnMas.style.display = "none";
     }
 
+    const totalDebitos = lista.reduce((a, f) => a + (f.debitos || 0), 0);
     document.getElementById("pie-cantidad").textContent = lista.length;
     document.getElementById("pie-monto").textContent = money(totalFacturado);
-    document.getElementById("pie-cobrado").textContent = money(totalCobrado);
+    document.getElementById("pie-cobrado").innerHTML =
+      money(totalCobrado) +
+      (totalDebitos > 0 ? `<div class="subtexto" style="color:var(--danger);font-weight:600;">Débito: ${money(totalDebitos)}</div>` : "");
     document.getElementById("pie-saldo").textContent = money(totalFacturado - totalCobrado);
     document.getElementById("pie-pct").textContent = porcentajeCobrado + "%";
   }
