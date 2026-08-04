@@ -266,6 +266,7 @@
         <div class="label" id="hero-label">Total facturado</div>
         <div class="cifra mono" id="hero-cifra">$0,00</div>
         <div class="sub" id="hero-sub"></div>
+        <div class="sub mono" id="hero-debito" style="display:none;color:var(--danger);font-weight:600;margin-top:6px;"></div>
       </div>
       <div class="card gauge-card" id="tarjeta-gauge">
         <div class="label">% cobrado</div>
@@ -704,6 +705,16 @@
     if (modo === "deuda") porcentajeTexto = ` · <b>${porcentajeDeuda}%</b> del facturado sigue sin cobrarse`;
     document.getElementById("hero-sub").innerHTML =
       `${cantidadTexto}${porcentajeTexto} · ${empresaLabel}${unidadLabel}${tipoLabel}${origenLabel}`;
+
+    const totalDebitoVista = lista.reduce((a, f) => a + (f.debitos || 0), 0);
+    const elDebito = document.getElementById("hero-debito");
+    if (totalDebitoVista > 0){
+      elDebito.style.display = "block";
+      elDebito.textContent = `Total debitado por obras sociales: ${money(totalDebitoVista)}`;
+    } else {
+      elDebito.style.display = "none";
+      elDebito.textContent = "";
+    }
 
     document.getElementById("tarjeta-gauge").style.display = modo === "facturacion" ? "flex" : "none";
     document.getElementById("tarjeta-forma-pago").style.display = modo === "cobrado" ? "flex" : "none";
