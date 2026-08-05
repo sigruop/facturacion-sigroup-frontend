@@ -580,12 +580,18 @@
   }
 
   // Agrupa en una sola fila lo que no tiene sentido mostrar factura por
-  // factura: Particulares de CEMEI/Neo (una fila por empresa/unidad) y toda
-  // la facturación de Salud Integral (una fila por tipo: Pago de cuotas /
-  // Venta de ordenes). El resto se muestra sin agrupar, una fila por factura.
+  // factura: Particulares y Señas de CEMEI/Neo (una fila por empresa/unidad)
+  // y toda la facturación de Salud Integral (una fila por tipo: Pago de
+  // cuotas / Venta de ordenes). El resto se muestra sin agrupar, una fila
+  // por factura.
+  function esSeña(f){
+    return (f.concepto || "").toLowerCase().includes("seña");
+  }
+
   function claveAgrupado(f){
     const esParticular = (f.origen || "").toLowerCase().includes("particular");
     if (esParticular) return `PARTICULARES||${f.empresa}||${f.unidad || ""}`;
+    if (esSeña(f)) return `SENA||${f.empresa}||${f.unidad || ""}`;
     if (f.tipoFactura) return `TIPO||${f.empresa}||${f.tipoFactura}`;
     return null;
   }
@@ -602,12 +608,13 @@
       }
       if (!grupos.has(key)){
         const esParticular = key.startsWith("PARTICULARES||");
+        const esSena = key.startsWith("SENA||");
         grupos.set(key, {
           empresa: f.empresa,
           unidad: f.unidad,
           tipoFactura: f.tipoFactura,
           origen: f.origen,
-          etiqueta: esParticular ? "Particulares" : f.tipoFactura,
+          etiqueta: esParticular ? "Particulares" : esSena ? "Señas" : f.tipoFactura,
           monto: 0,
           cobrado: 0,
           saldo: 0,
@@ -825,7 +832,7 @@
     } else if (state.empresa === "CEMEI"){
       const porOrigenMap = new Map();
       lista.forEach((f) => {
-        const clave = f.origen || "Sin origen";
+        const clave = esSeña(f) ? "Señas" : (f.origen || "Sin origen");
         if (!porOrigenMap.has(clave)) porOrigenMap.set(clave, { nombre: clave, monto: 0 });
         porOrigenMap.get(clave).monto += f[campoValor];
       });
