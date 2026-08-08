@@ -156,7 +156,7 @@
   .fp-row .fp-linea{display:flex;align-items:center;gap:10px;}
   .fp-row .barra-track{flex:1;background:var(--surface-alt);border:1px solid var(--border);border-radius:999px;height:10px;overflow:hidden;}
   .fp-row .barra-fill{background:var(--accent);height:100%;border-radius:999px;}
-  .fp-row .fp-monto{flex:0 0 auto;min-width:120px;text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:18px;color:var(--text-secondary);}
+  .fp-row .fp-monto{flex:0 0 auto;min-width:120px;text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:15px;color:var(--text-secondary);}
 
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
   thead th{
@@ -168,6 +168,11 @@
   tbody td.num{text-align:right;white-space:nowrap;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:var(--surface-alt);}
+  tbody tr.clickeable{cursor:pointer;}
+  tbody tr.clickeable:hover{background:var(--accent-light);}
+  tbody tr.fila-detalle{background:var(--surface-alt);font-size:12.5px;}
+  tbody tr.fila-detalle td{color:var(--text-secondary);}
+  .chevron{display:inline-block;width:12px;color:var(--text-muted);font-size:11px;}
   tfoot td{padding:13px 12px 0;font-weight:700;border-top:2px solid var(--text-primary);}
   .subtexto{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
 
@@ -266,7 +271,7 @@
         <div class="label" id="hero-label">Total facturado</div>
         <div class="cifra mono" id="hero-cifra">$0,00</div>
         <div class="sub" id="hero-sub"></div>
-        <div class="sub mono" id="hero-debito" style="display:none;color:var(--danger);font-weight:600;margin-top:6px;"></div>
+        <div class="sub mono" id="hero-debito" style="display:none;color:var(--danger);font-weight:600;font-size:15px;margin-top:6px;"></div>
       </div>
       <div class="card gauge-card" id="tarjeta-gauge">
         <div class="label">% cobrado</div>
@@ -353,6 +358,7 @@
     modo: "facturacion",  // "facturacion" (realizado) | "cobrado" (cash-basis)
     mes: null,        // "2026-06"
     todosLosMeses: false, // solo aplica en modo deuda
+    grupoExpandido: null, // clave del grupo agregado que está desplegado en la tabla, si hay alguno
     empresa: "",       // "" = todas, o SIG / CEMEI / NEO
     unidad: "",         // "" = todas (CEMEI SRL / CEMEI ODONTOLOGIA / MEDICINA LABORAL / etc.)
     tipoFactura: "",     // "" = todos (Pago de cuotas / Venta de ordenes, propio de Salud Integral)
@@ -469,6 +475,28 @@
   function badgeEstado(estado){
     const clase = estado === "Pagada" ? "pagada" : estado === "Anulada" ? "anulada" : "vigente";
     return `<span class="badge ${clase}">${estado}</span>`;
+  }
+
+  function filaFactura(f, esDetalleDesplegado){
+    const claveAttr = f.esAgregado ? ` data-grupo-clave="${escaparHtml(f.grupoClave)}"` : "";
+    const claseFila = f.esAgregado ? " clickeable" : esDetalleDesplegado ? " fila-detalle" : "";
+    const chevron = f.esAgregado
+      ? `<span class="chevron">${state.grupoExpandido === f.grupoClave ? "▾" : "▸"}</span> `
+      : "";
+    return `
+        <tr${claveAttr}${claseFila ? ` class="${claseFila.trim()}"` : ""}>
+          <td class="mono">${f.esAgregado ? "Varias" : (f.fecha || "-")}</td>
+          <td>${chevron}${f.cliente}${!state.empresa ? `<div class="subtexto">${f.empresa}</div>` : ""}</td>
+          <td>${f.unidad || f.tipoFactura || "-"}</td>
+          <td title="${escaparHtml(f.concepto)}">${simplificarConcepto(f.concepto)}${f.comprobante ? `<div class="subtexto">${escaparHtml(f.comprobante)}</div>` : ""}</td>
+          <td>${f.origen || "-"}</td>
+          <td class="num mono">${money(f.monto)}</td>
+          <td class="num mono">${money(f.cobrado)}${f.debitos > 0 ? `<div class="subtexto" style="color:var(--danger);">Débito: ${money(f.debitos)}</div>` : ""}</td>
+          <td class="num mono">${money(f.saldo)}</td>
+          <td class="num mono">${f.porcentajeCobrado}%</td>
+          <td class="num mono">${f.diasVencido || 0}</td>
+          <td>${badgeEstado(f.estado)}</td>
+        </tr>`;
   }
 
   function escaparHtml(texto){
@@ -610,6 +638,7 @@
         const esParticular = key.startsWith("PARTICULARES||");
         const esSena = key.startsWith("SENA||");
         grupos.set(key, {
+          clave: key,
           empresa: f.empresa,
           unidad: f.unidad,
           tipoFactura: f.tipoFactura,
@@ -622,6 +651,7 @@
           cantidadFacturas: 0,
           fechaMax: f.fecha || "",
           todasAnuladas: true,
+          detalleFacturas: [],
         });
       }
       const g = grupos.get(key);
@@ -630,6 +660,7 @@
       g.saldo += f.saldo || 0;
       g.debitos += f.debitos || 0;
       g.cantidadFacturas += 1;
+      g.detalleFacturas.push(f);
       if (!f.anulado) g.todasAnuladas = false;
       if ((f.fecha || "") > g.fechaMax) g.fechaMax = f.fecha || "";
     });
@@ -637,6 +668,8 @@
     const agregados = Array.from(grupos.values()).map((g) => {
       return {
         esAgregado: true,
+        grupoClave: g.clave,
+        detalleFacturas: g.detalleFacturas,
         empresa: g.empresa,
         unidad: g.unidad,
         tipoFactura: g.tipoFactura,
@@ -850,22 +883,17 @@
     } else {
       const visibles = listaTabla.slice(0, state.filasVisibles);
       tbody.innerHTML = visibles
-        .map(
-          (f) => `
-        <tr>
-          <td class="mono">${f.esAgregado ? "Varias" : (f.fecha || "-")}</td>
-          <td>${f.cliente}${!state.empresa ? `<div class="subtexto">${f.empresa}</div>` : ""}</td>
-          <td>${f.unidad || f.tipoFactura || "-"}</td>
-          <td title="${escaparHtml(f.concepto)}">${simplificarConcepto(f.concepto)}${f.comprobante ? `<div class="subtexto">${escaparHtml(f.comprobante)}</div>` : ""}</td>
-          <td>${f.origen || "-"}</td>
-          <td class="num mono">${money(f.monto)}</td>
-          <td class="num mono">${money(f.cobrado)}${f.debitos > 0 ? `<div class="subtexto" style="color:var(--danger);">Débito: ${money(f.debitos)}</div>` : ""}</td>
-          <td class="num mono">${money(f.saldo)}</td>
-          <td class="num mono">${f.porcentajeCobrado}%</td>
-          <td class="num mono">${f.diasVencido || 0}</td>
-          <td>${badgeEstado(f.estado)}</td>
-        </tr>`
-        )
+        .map((f) => {
+          let fila = filaFactura(f);
+          if (f.esAgregado && state.grupoExpandido === f.grupoClave){
+            fila += f.detalleFacturas
+              .slice()
+              .sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""))
+              .map((sub) => filaFactura(sub, true))
+              .join("");
+          }
+          return fila;
+        })
         .join("");
     }
 
@@ -911,6 +939,7 @@
       state.tipoFactura = "";
       state.origenes = [];
       state.filasVisibles = FILAS_POR_PAGINA;
+      state.grupoExpandido = null;
       construirOpciones("unidad", "filtro-unidad", "campo-unidad", state.unidad, "Todas");
       construirOpciones("tipoFactura", "filtro-tipo", "campo-tipo", state.tipoFactura, "Todos");
       construirMultiselectOrigen();
@@ -973,6 +1002,13 @@
   });
   document.getElementById("btn-mostrar-mas").addEventListener("click", () => {
     state.filasVisibles += FILAS_POR_PAGINA;
+    renderizar();
+  });
+  document.getElementById("tabla-body").addEventListener("click", (e) => {
+    const fila = e.target.closest("tr[data-grupo-clave]");
+    if (!fila) return;
+    const clave = fila.getAttribute("data-grupo-clave");
+    state.grupoExpandido = state.grupoExpandido === clave ? null : clave;
     renderizar();
   });
 
