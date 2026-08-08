@@ -277,7 +277,7 @@
         </svg>
       </div>
       <div class="card empresas" id="tarjeta-forma-pago" style="display:none;justify-content:center;">
-        <div class="label" style="margin-bottom:10px;">Por forma de pago</div>
+        <div class="label" style="margin-bottom:10px;">Débitos del período</div>
         <div id="lista-forma-pago"></div>
       </div>
       <div class="card empresas" id="tarjeta-deuda-top" style="display:none;justify-content:center;">
@@ -728,29 +728,30 @@
     document.getElementById("tarjeta-deuda-top").style.display = modo === "deuda" ? "flex" : "none";
 
     if (modo === "cobrado"){
-      const porFormaMap = new Map();
+      const porDebitoMap = new Map();
       lista.forEach((f) => {
-        const clave = f.formaPago || "Sin especificar";
-        porFormaMap.set(clave, (porFormaMap.get(clave) || 0) + f.cobrado);
+        if (!(f.debitos > 0)) return;
+        const clave = state.empresa ? f.cliente : `${f.cliente} · ${f.empresa}`;
+        porDebitoMap.set(clave, (porDebitoMap.get(clave) || 0) + f.debitos);
       });
-      const porForma = Array.from(porFormaMap.entries())
-        .map(([forma, monto]) => ({ forma, monto }))
+      const porDebito = Array.from(porDebitoMap.entries())
+        .map(([nombre, monto]) => ({ nombre, monto }))
         .sort((a, b) => b.monto - a.monto);
-      const maxForma = Math.max(...porForma.map((f) => f.monto), 1);
-      document.getElementById("lista-forma-pago").innerHTML = porForma.length
-        ? porForma
+      const maxDebito = Math.max(...porDebito.map((d) => d.monto), 1);
+      document.getElementById("lista-forma-pago").innerHTML = porDebito.length
+        ? porDebito
             .map(
-              (f) => `
+              (d) => `
           <div class="fp-row">
-            <div class="fp-label">${escaparHtml(f.forma)}</div>
+            <div class="fp-label">${escaparHtml(d.nombre)}</div>
             <div class="fp-linea">
-              <div class="barra-track"><div class="barra-fill" style="width:${(f.monto / maxForma) * 100}%"></div></div>
-              <div class="fp-monto">${money(f.monto)}</div>
+              <div class="barra-track"><div class="barra-fill" style="width:${(d.monto / maxDebito) * 100}%"></div></div>
+              <div class="fp-monto">${money(d.monto)}</div>
             </div>
           </div>`
             )
             .join("")
-        : `<div style="color:var(--text-muted);font-size:13px;">Sin datos</div>`;
+        : `<div style="color:var(--text-muted);font-size:13px;">Sin débitos en este período</div>`;
     } else if (modo === "deuda"){
       const porDeudorMap = new Map();
       lista.forEach((f) => {
