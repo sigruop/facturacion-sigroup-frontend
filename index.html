@@ -478,9 +478,9 @@
   }
 
   function filaFactura(f, esDetalleDesplegado){
-    const claveAttr = f.esAgregado ? ` data-grupo-clave="${escaparHtml(f.grupoClave)}"` : "";
-    const claseFila = f.esAgregado ? " clickeable" : esDetalleDesplegado ? " fila-detalle" : "";
-    const chevron = f.esAgregado
+    const claveAttr = f.grupoClave ? ` data-grupo-clave="${escaparHtml(f.grupoClave)}"` : "";
+    const claseFila = f.grupoClave ? " clickeable" : esDetalleDesplegado ? " fila-detalle" : "";
+    const chevron = f.grupoClave
       ? `<span class="chevron">${state.grupoExpandido === f.grupoClave ? "▾" : "▸"}</span> `
       : "";
     return `
@@ -605,6 +605,68 @@
 
   function ordenarPorFecha(a, b){
     return (b.fecha || "").localeCompare(a.fecha || "");
+  }
+
+  function normalizarTexto(texto){
+    return String(texto || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase()
+      .trim();
+  }
+
+  // Segundo nivel de agrupado, solo para adentro de un grupo ya desplegado
+  // (ej. las 12 facturas de "Facturación" de SIG): junta las "CARGA CREDITO
+  // A CUENTA CORRIENTE DEL AFILIADO" en un solo ítem, porque son muchas
+  // cargas chicas repetidas — el resto de las facturas (las que tienen
+  // cliente propio, como una obra social) se muestran individuales como ya
+  // estaban.
+  function agruparCargaCredito(lista){
+    const individuales = [];
+    const g = { monto: 0, cobrado: 0, saldo: 0, debitos: 0, cantidadFacturas: 0, fechaMax: "", todasAnuladas: true };
+    let encontrado = false;
+
+    lista.forEach((f) => {
+      const esCarga = normalizarTexto(f.concepto).includes("CARGA CREDITO") ||
+        normalizarTexto(f.concepto).includes("CARGA DE CREDITO");
+      if (!esCarga){
+        individuales.push(f);
+        return;
+      }
+      encontrado = true;
+      g.empresa = f.empresa;
+      g.unidad = f.unidad;
+      g.tipoFactura = f.tipoFactura;
+      g.monto += f.monto;
+      g.cobrado += f.cobrado;
+      g.saldo += f.saldo || 0;
+      g.debitos += f.debitos || 0;
+      g.cantidadFacturas += 1;
+      if (!f.anulado) g.todasAnuladas = false;
+      if ((f.fecha || "") > g.fechaMax) g.fechaMax = f.fecha || "";
+    });
+
+    if (!encontrado) return lista;
+
+    const filaGrupo = {
+      esAgregado: true,
+      grupoClave: null, // no se despliega de nuevo, ya es el segundo nivel
+      empresa: g.empresa,
+      unidad: g.unidad,
+      tipoFactura: g.tipoFactura,
+      cliente: "Carga de crédito a cuenta corriente",
+      concepto: `${g.cantidadFacturas} factura${g.cantidadFacturas === 1 ? "" : "s"}`,
+      comprobante: null,
+      fecha: g.fechaMax,
+      monto: g.monto,
+      cobrado: g.cobrado,
+      saldo: g.saldo,
+      debitos: g.debitos,
+      porcentajeCobrado: g.monto > 0 ? +((g.cobrado / g.monto) * 100).toFixed(2) : 0,
+      diasVencido: 0,
+      estado: g.todasAnuladas ? "Anulada" : g.saldo <= 0.1 ? "Pagada" : "Vigente",
+    };
+    return individuales.concat([filaGrupo]).sort(ordenarPorFecha);
   }
 
   // Agrupa en una sola fila lo que no tiene sentido mostrar factura por
@@ -886,11 +948,9 @@
         .map((f) => {
           let fila = filaFactura(f);
           if (f.esAgregado && state.grupoExpandido === f.grupoClave){
-            fila += f.detalleFacturas
-              .slice()
-              .sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""))
-              .map((sub) => filaFactura(sub, true))
-              .join("");
+            const detalleOrdenado = f.detalleFacturas.slice().sort(ordenarPorFecha);
+            const detalleAgrupado = agruparCargaCredito(detalleOrdenado);
+            fila += detalleAgrupado.map((sub) => filaFactura(sub, true)).join("");
           }
           return fila;
         })
