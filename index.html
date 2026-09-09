@@ -823,7 +823,7 @@
     const elNoFacturado = document.getElementById("hero-no-facturado");
     if (modo === "facturacion" && noFacturado){
       elNoFacturado.style.display = "block";
-      elNoFacturado.textContent = `Sin facturar (falta documentación) — ${noFacturado.convenio}: ${money(noFacturado.monto)}`;
+      elNoFacturado.textContent = `Sin facturar  — ${noFacturado.convenio}: ${money(noFacturado.monto)}`;
     } else {
       elNoFacturado.style.display = "none";
       elNoFacturado.textContent = "";
