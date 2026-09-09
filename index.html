@@ -135,6 +135,15 @@
   .hero-total .sub{margin-top:10px;font-size:13px;color:var(--text-secondary);}
   .hero-total .sub b{color:var(--text-primary);font-weight:600;}
 
+  .aviso-hero{margin-top:14px;padding:12px 16px;border-radius:10px;border-left:3px solid transparent;}
+  .aviso-hero.tono-danger{background:var(--danger-light);border-left-color:var(--danger);}
+  .aviso-hero.tono-warning{background:var(--warning-light);border-left-color:var(--warning);}
+  .aviso-hero .aviso-titulo{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
+  .aviso-hero.tono-danger .aviso-titulo{color:var(--danger);}
+  .aviso-hero.tono-warning .aviso-titulo{color:var(--warning);}
+  .aviso-hero .aviso-monto{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:var(--text-primary);}
+  .aviso-hero .aviso-detalle{font-size:12.5px;color:var(--text-secondary);margin-top:3px;}
+
   .gauge-card{display:flex;flex-direction:column;align-items:center;justify-content:center;}
   .gauge-card .label{font-size:13px;color:var(--text-secondary);font-weight:500;margin-bottom:4px;}
   #gauge-pct{font-size:26px;font-weight:600;fill:var(--text-primary);font-family:"IBM Plex Mono",monospace;}
@@ -271,8 +280,15 @@
         <div class="label" id="hero-label">Total facturado</div>
         <div class="cifra mono" id="hero-cifra">$0,00</div>
         <div class="sub" id="hero-sub"></div>
-        <div class="sub mono" id="hero-debito" style="display:none;color:var(--danger);font-weight:600;font-size:15px;margin-top:6px;"></div>
-        <div class="sub mono" id="hero-no-facturado" style="display:none;color:var(--warning);font-weight:600;font-size:15px;margin-top:6px;"></div>
+        <div class="aviso-hero tono-danger" id="hero-debito" style="display:none;">
+          <div class="aviso-titulo">Debitado por obras sociales</div>
+          <div class="aviso-monto" id="hero-debito-monto">$0,00</div>
+        </div>
+        <div class="aviso-hero tono-warning" id="hero-no-facturado" style="display:none;">
+          <div class="aviso-titulo">Sin facturar — falta documentación</div>
+          <div class="aviso-monto" id="hero-no-facturado-monto">$0,00</div>
+          <div class="aviso-detalle" id="hero-no-facturado-detalle"></div>
+        </div>
       </div>
       <div class="card gauge-card" id="tarjeta-gauge">
         <div class="label">% cobrado</div>
@@ -813,20 +829,19 @@
     const elDebito = document.getElementById("hero-debito");
     if (totalDebitoVista > 0){
       elDebito.style.display = "block";
-      elDebito.textContent = `Total debitado por obras sociales: ${money(totalDebitoVista)}`;
+      document.getElementById("hero-debito-monto").textContent = money(totalDebitoVista);
     } else {
       elDebito.style.display = "none";
-      elDebito.textContent = "";
     }
 
     const noFacturado = state.datos && state.datos.noFacturadoCEMEI;
     const elNoFacturado = document.getElementById("hero-no-facturado");
     if (modo === "facturacion" && noFacturado){
       elNoFacturado.style.display = "block";
-      elNoFacturado.textContent = `Sin facturar  — ${noFacturado.convenio}: ${money(noFacturado.monto)}`;
+      document.getElementById("hero-no-facturado-monto").textContent = money(noFacturado.monto);
+      document.getElementById("hero-no-facturado-detalle").textContent = `Convenio: ${noFacturado.convenio}`;
     } else {
       elNoFacturado.style.display = "none";
-      elNoFacturado.textContent = "";
     }
 
     document.getElementById("tarjeta-gauge").style.display = modo === "facturacion" ? "flex" : "none";
