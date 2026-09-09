@@ -272,6 +272,7 @@
         <div class="cifra mono" id="hero-cifra">$0,00</div>
         <div class="sub" id="hero-sub"></div>
         <div class="sub mono" id="hero-debito" style="display:none;color:var(--danger);font-weight:600;font-size:15px;margin-top:6px;"></div>
+        <div class="sub mono" id="hero-no-facturado" style="display:none;color:var(--warning);font-weight:600;font-size:15px;margin-top:6px;"></div>
       </div>
       <div class="card gauge-card" id="tarjeta-gauge">
         <div class="label">% cobrado</div>
@@ -816,6 +817,16 @@
     } else {
       elDebito.style.display = "none";
       elDebito.textContent = "";
+    }
+
+    const noFacturado = state.datos && state.datos.noFacturadoCEMEI;
+    const elNoFacturado = document.getElementById("hero-no-facturado");
+    if (modo === "facturacion" && noFacturado){
+      elNoFacturado.style.display = "block";
+      elNoFacturado.textContent = `Sin facturar (falta documentación) — ${noFacturado.convenio}: ${money(noFacturado.monto)}`;
+    } else {
+      elNoFacturado.style.display = "none";
+      elNoFacturado.textContent = "";
     }
 
     document.getElementById("tarjeta-gauge").style.display = modo === "facturacion" ? "flex" : "none";
