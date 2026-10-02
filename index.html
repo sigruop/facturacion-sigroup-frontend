@@ -285,9 +285,14 @@
           <div class="aviso-monto" id="hero-debito-monto">$0,00</div>
         </div>
         <div class="aviso-hero tono-warning" id="hero-no-facturado" style="display:none;">
-          <div class="aviso-titulo">Sin facturar </div>
+          <div class="aviso-titulo">Sin facturar — falta documentación</div>
           <div class="aviso-monto" id="hero-no-facturado-monto">$0,00</div>
           <div class="aviso-detalle" id="hero-no-facturado-detalle"></div>
+        </div>
+        <div class="aviso-hero tono-warning" id="hero-no-facturado-2" style="display:none;">
+          <div class="aviso-titulo">Sin facturar — falta documentación (por centro)</div>
+          <div class="aviso-monto" id="hero-no-facturado-2-monto">$0,00</div>
+          <div class="aviso-detalle" id="hero-no-facturado-2-detalle"></div>
         </div>
       </div>
       <div class="card gauge-card" id="tarjeta-gauge">
@@ -834,14 +839,29 @@
       elDebito.style.display = "none";
     }
 
-    const noFacturado = state.datos && state.datos.noFacturadoCEMEI;
+    const noFacturadoCEMEI = state.datos && state.datos.noFacturadoCEMEI;
+    const noFacturadoPorCentro = state.datos && state.datos.noFacturadoSIG;
     const elNoFacturado = document.getElementById("hero-no-facturado");
-    if (modo === "facturacion" && noFacturado){
+    if (modo === "facturacion" && noFacturadoCEMEI){
       elNoFacturado.style.display = "block";
-      document.getElementById("hero-no-facturado-monto").textContent = money(noFacturado.monto);
-      document.getElementById("hero-no-facturado-detalle").textContent = `Convenio: ${noFacturado.convenio}`;
+      document.getElementById("hero-no-facturado-monto").textContent = money(noFacturadoCEMEI.monto);
+      document.getElementById("hero-no-facturado-detalle").textContent = `Convenio: ${noFacturadoCEMEI.convenio}`;
     } else {
       elNoFacturado.style.display = "none";
+    }
+
+    const elNoFacturado2 = document.getElementById("hero-no-facturado-2");
+    if (modo === "facturacion" && noFacturadoPorCentro){
+      elNoFacturado2.style.display = "block";
+      document.getElementById("hero-no-facturado-2-monto").textContent = money(noFacturadoPorCentro.monto);
+      const topCentros = noFacturadoPorCentro.porCentro
+        .slice(0, 4)
+        .map((c) => `${c.nombre}: ${money(c.monto)}`)
+        .join(" · ");
+      document.getElementById("hero-no-facturado-2-detalle").textContent =
+        `${noFacturadoPorCentro.cantidad} prestaciones (documentación) · ${topCentros}`;
+    } else {
+      elNoFacturado2.style.display = "none";
     }
 
     document.getElementById("tarjeta-gauge").style.display = modo === "facturacion" ? "flex" : "none";
