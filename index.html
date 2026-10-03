@@ -63,6 +63,36 @@
     font-weight:600;font-size:13px;cursor:pointer;
   }
 
+  #upload-farmacia-panel{
+    display:none;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:16px 18px;margin-bottom:18px;
+  }
+  #upload-farmacia-panel.abierto{display:flex;}
+  #upload-farmacia-panel .ufp-header{display:flex;flex-direction:column;gap:2px;}
+  #upload-farmacia-panel .ufp-sub{font-size:12px;color:var(--text-muted);}
+  #upload-farmacia-panel .ufp-fila{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  #upload-farmacia-panel label{font-size:13px;color:var(--text-secondary);font-weight:500;}
+  #upload-farmacia-panel input[type="password"]{
+    flex:1;min-width:220px;border:1px solid var(--border);border-radius:8px;padding:8px 10px;
+    font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--text-primary);background:var(--surface-alt);
+  }
+  #upload-farmacia-panel button{
+    background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;
+    font-weight:600;font-size:13px;cursor:pointer;
+  }
+  #upload-farmacia-panel button:disabled{opacity:.5;cursor:default;}
+  #ufp-resumen{
+    background:var(--surface-alt);border-radius:8px;padding:12px 14px;font-size:13px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  #ufp-resumen table{border-collapse:collapse;width:100%;font-size:12.5px;}
+  #ufp-resumen th, #ufp-resumen td{text-align:right;padding:3px 8px;}
+  #ufp-resumen th:first-child, #ufp-resumen td:first-child{text-align:left;}
+  #ufp-resumen .ufp-aviso{color:var(--danger);font-weight:600;}
+  #ufp-resultado{font-size:13px;}
+  #ufp-resultado.ok{color:var(--accent);}
+  #ufp-resultado.error{color:var(--danger);}
+
   .meses{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;}
   .meses::-webkit-scrollbar{height:6px;}
   .mes-pill{
@@ -224,6 +254,7 @@
     </div>
     <div class="topbar-right">
       <span id="ultima-actualizacion"></span>
+      <button class="icon-btn" id="btn-upload-farmacia" title="Cargar ventas de Farmacia" aria-label="Cargar ventas de Farmacia">📤</button>
       <button class="icon-btn" id="btn-config" title="Configurar backend" aria-label="Configurar backend">⚙</button>
     </div>
   </header>
@@ -238,6 +269,24 @@
     <label for="input-backend">URL del backend</label>
     <input id="input-backend" type="text" placeholder="https://tu-backend.onrender.com" />
     <button id="btn-guardar-backend">Guardar</button>
+  </div>
+
+  <div id="upload-farmacia-panel">
+    <div class="ufp-header">
+      <strong>Cargar ventas de Farmacia</strong>
+      <span class="ufp-sub">Export del punto de venta (CSV, separado por ";"). Reemplaza el/los meses que aparezcan en el archivo — no afecta otros meses.</span>
+    </div>
+    <div class="ufp-fila">
+      <input id="ufp-archivo" type="file" accept=".csv,text/csv" />
+      <button id="ufp-procesar" type="button">Procesar archivo</button>
+    </div>
+    <div id="ufp-resumen" style="display:none;"></div>
+    <div class="ufp-fila" id="ufp-fila-secreto" style="display:none;">
+      <label for="ufp-secreto">Clave de sincronización</label>
+      <input id="ufp-secreto" type="password" placeholder="Se guarda solo en este navegador" />
+      <button id="ufp-confirmar" type="button">Confirmar y subir</button>
+    </div>
+    <div id="ufp-resultado"></div>
   </div>
 
   <nav class="meses" id="meses"></nav>
@@ -1099,6 +1148,225 @@
       CONFIG.backendUrl = valor.replace(/\/$/, "");
       document.getElementById("config-panel").classList.remove("abierto");
       cargarDatos();
+    }
+  });
+
+  // --- Carga de ventas de Farmacia (CSV del punto de venta) ---
+  // Todo el parseo pasa por el propio navegador de Gustavo (no por Claude),
+  // así que no hay riesgo de que se corrompa un archivo grande al subirlo:
+  // se lee, se arma el JSON y se manda directo al backend con fetch.
+  let ufpFilasParaSubir = null;
+
+  function ufpNumero(valor) {
+    if (!valor) return 0;
+    const limpio = String(valor).trim().replace(/\./g, "").replace(",", ".");
+    const n = parseFloat(limpio);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function ufpPeriodoDesdeFecha(fecha) {
+    const m = String(fecha).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!m) return null;
+    return `${m[3]}-${m[2]}`;
+  }
+
+  // Comprobantes FV (venta) y NC (nota de crédito) son ventas reales. RC
+  // (recibo de cobro) es cuando se cobra una Cta. Cte. vieja. IN (vuelto y
+  // otros movimientos de caja) y EG (egresos de caja) no son ventas y se
+  // descartan acá mismo, antes de mandar nada al servidor.
+  function ufpParsearCSV(texto) {
+    const lineas = texto.split(/\r\n|\n|\r/).filter((l) => l.trim().length > 0);
+    if (lineas.length < 2) throw new Error("El archivo no tiene filas de datos.");
+    const encabezado = lineas[0].split(";").map((h) => h.trim());
+    const nombresColumnas = {
+      emision: "Emision",
+      comprobante: "Comprobante",
+      cliente: "Cliente",
+      total: "Total",
+      cobertura: "Cobertura",
+      ctaCte: "Cta. Cte.",
+      efectivo: "Efectivo",
+      debito: "Debito",
+      credito: "Credito",
+      mercadoPago: "MercadoPago",
+      puntosPago: "PuntosPago",
+      movBancario: "MovBancario",
+      otros: "Otros",
+    };
+    const columnas = {};
+    for (const [clave, nombre] of Object.entries(nombresColumnas)) {
+      const i = encabezado.indexOf(nombre);
+      if (i === -1) throw new Error(`No se encontró la columna "${nombre}" en el archivo.`);
+      columnas[clave] = i;
+    }
+    const filas = [];
+    const descartadas = { sinFecha: 0, prefijoExcluido: 0 };
+    const prefijosVistos = {};
+    for (let i = 1; i < lineas.length; i++) {
+      const campos = lineas[i].split(";");
+      const comprobante = (campos[columnas.comprobante] || "").trim();
+      const prefijo = (comprobante.split(" ")[0] || "").toUpperCase();
+      prefijosVistos[prefijo || "(vacío)"] = (prefijosVistos[prefijo || "(vacío)"] || 0) + 1;
+      const periodo = ufpPeriodoDesdeFecha(campos[columnas.emision]);
+      if (!periodo) { descartadas.sinFecha++; continue; }
+      if (!["FV", "NC", "RC"].includes(prefijo)) { descartadas.prefijoExcluido++; continue; }
+      filas.push({
+        periodo,
+        comprobante,
+        prefijo,
+        fecha: (campos[columnas.emision] || "").trim(),
+        cliente: (campos[columnas.cliente] || "").trim(),
+        total: ufpNumero(campos[columnas.total]),
+        cobertura: ufpNumero(campos[columnas.cobertura]),
+        ctaCte: ufpNumero(campos[columnas.ctaCte]),
+        efectivo: ufpNumero(campos[columnas.efectivo]),
+        debito: ufpNumero(campos[columnas.debito]),
+        credito: ufpNumero(campos[columnas.credito]),
+        mercadoPago: ufpNumero(campos[columnas.mercadoPago]),
+        puntosPago: ufpNumero(campos[columnas.puntosPago]),
+        movBancario: ufpNumero(campos[columnas.movBancario]),
+        otros: ufpNumero(campos[columnas.otros]),
+      });
+    }
+    return { filas, descartadas, prefijosVistos, totalLineas: lineas.length - 1 };
+  }
+
+  function ufpResumirPorPeriodo(filas) {
+    const porPeriodo = new Map();
+    for (const f of filas) {
+      if (!porPeriodo.has(f.periodo)) {
+        porPeriodo.set(f.periodo, { facturado: 0, coberturaNeta: 0, ctaCteNeta: 0, rc: 0, cantFV: 0, cantNC: 0, cantRC: 0 });
+      }
+      const p = porPeriodo.get(f.periodo);
+      if (f.prefijo === "FV" || f.prefijo === "NC") {
+        p.facturado += f.total;
+        p.coberturaNeta += f.cobertura;
+        p.ctaCteNeta += f.ctaCte;
+        if (f.prefijo === "FV") p.cantFV++; else p.cantNC++;
+      } else if (f.prefijo === "RC") {
+        p.rc += f.total;
+        p.cantRC++;
+      }
+    }
+    for (const p of porPeriodo.values()) {
+      p.cobradoInmediato = p.facturado - p.coberturaNeta - p.ctaCteNeta;
+      p.cobradoCaja = p.cobradoInmediato + p.rc;
+    }
+    return porPeriodo;
+  }
+
+  function ufpRenderResumen({ filas, descartadas, prefijosVistos, totalLineas }) {
+    const porPeriodo = ufpResumirPorPeriodo(filas);
+    const periodos = Array.from(porPeriodo.keys()).sort();
+    const filasTabla = periodos
+      .map((p) => {
+        const r = porPeriodo.get(p);
+        return `<tr>
+          <td>${formatearMes(p)}</td>
+          <td>${money(r.facturado)}</td>
+          <td>${money(r.coberturaNeta)}</td>
+          <td>${money(r.ctaCteNeta)}</td>
+          <td>${money(r.cobradoInmediato)}</td>
+          <td>${money(r.rc)}</td>
+          <td>${money(r.cobradoCaja)}</td>
+          <td>${r.cantFV} / ${r.cantNC} / ${r.cantRC}</td>
+        </tr>`;
+      })
+      .join("");
+    const prefijosTexto = Object.entries(prefijosVistos)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(" · ");
+    const avisoDescartes =
+      descartadas.sinFecha > 0
+        ? `<div class="ufp-aviso">${descartadas.sinFecha} fila(s) sin fecha reconocible (dd/mm/aaaa) — se ignoraron.</div>`
+        : "";
+    document.getElementById("ufp-resumen").innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Período</th><th>Facturado</th><th>Cobertura</th><th>Cta. Cte.</th>
+          <th>Cobrado al momento</th><th>Cobranzas (RC)</th><th>Cobrado total</th><th>FV / NC / RC</th>
+        </tr></thead>
+        <tbody>${filasTabla}</tbody>
+      </table>
+      <div>Total de líneas leídas: ${totalLineas} · por tipo de comprobante: ${prefijosTexto}</div>
+      <div>Se excluyeron ${descartadas.prefijoExcluido} fila(s) que no son FV/NC/RC (vueltos, movimientos de caja, egresos).</div>
+      ${avisoDescartes}
+    `;
+    document.getElementById("ufp-resumen").style.display = "flex";
+  }
+
+  document.getElementById("btn-upload-farmacia").addEventListener("click", () => {
+    document.getElementById("upload-farmacia-panel").classList.toggle("abierto");
+  });
+
+  document.getElementById("ufp-procesar").addEventListener("click", async () => {
+    const input = document.getElementById("ufp-archivo");
+    const resultado = document.getElementById("ufp-resultado");
+    resultado.textContent = "";
+    resultado.className = "";
+    if (!input.files || input.files.length === 0) {
+      resultado.textContent = "Elegí primero un archivo CSV.";
+      resultado.className = "error";
+      return;
+    }
+    try {
+      const buffer = await input.files[0].arrayBuffer();
+      const texto = new TextDecoder("windows-1252").decode(buffer);
+      const parseo = ufpParsearCSV(texto);
+      if (parseo.filas.length === 0) {
+        throw new Error("No se encontró ninguna fila de venta (FV/NC/RC) con fecha válida en el archivo.");
+      }
+      ufpFilasParaSubir = parseo.filas;
+      ufpRenderResumen(parseo);
+      const secretoGuardado = localStorage.getItem("ufpSecretoFarmacia") || "";
+      document.getElementById("ufp-secreto").value = secretoGuardado;
+      document.getElementById("ufp-fila-secreto").style.display = "flex";
+    } catch (e) {
+      ufpFilasParaSubir = null;
+      document.getElementById("ufp-resumen").style.display = "none";
+      document.getElementById("ufp-fila-secreto").style.display = "none";
+      resultado.textContent = "No se pudo leer el archivo: " + e.message;
+      resultado.className = "error";
+    }
+  });
+
+  document.getElementById("ufp-confirmar").addEventListener("click", async () => {
+    const resultado = document.getElementById("ufp-resultado");
+    const boton = document.getElementById("ufp-confirmar");
+    const secreto = document.getElementById("ufp-secreto").value.trim();
+    if (!ufpFilasParaSubir) {
+      resultado.textContent = "Primero procesá un archivo.";
+      resultado.className = "error";
+      return;
+    }
+    if (!secreto) {
+      resultado.textContent = "Falta la clave de sincronización.";
+      resultado.className = "error";
+      return;
+    }
+    localStorage.setItem("ufpSecretoFarmacia", secreto);
+    boton.disabled = true;
+    resultado.textContent = "Subiendo...";
+    resultado.className = "";
+    try {
+      const resp = await fetch(`${CONFIG.backendUrl}/api/ingest/ventas-farmacia`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Sync-Secret": secreto },
+        body: JSON.stringify({ filas: ufpFilasParaSubir }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.ok) {
+        throw new Error(data.error || `HTTP ${resp.status}`);
+      }
+      resultado.textContent = `Listo: se actualizaron ${data.periodosActualizados.map(formatearMes).join(", ")}.`;
+      resultado.className = "ok";
+      ufpFilasParaSubir = null;
+      cargarDatos();
+    } catch (e) {
+      resultado.textContent = "Error al subir: " + e.message;
+      resultado.className = "error";
+    } finally {
+      boton.disabled = false;
     }
   });
   document.getElementById("filtro-unidad").addEventListener("change", (e) => {
