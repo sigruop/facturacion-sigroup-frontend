@@ -367,6 +367,12 @@
       <div id="grid-resumen-comercial" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(190px,1fr));gap:18px;margin-top:6px;"></div>
     </section>
 
+    <section class="card" id="tarjeta-formas-pago-farmacia" style="display:none;margin-bottom:18px;">
+      <p class="eyebrow" style="margin-bottom:4px;">Farmacia — cobrado del período, por forma de pago</p>
+      <div id="grid-formas-pago-farmacia" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px,1fr));gap:18px;margin-top:6px;"></div>
+      <div id="nota-formas-pago-farmacia" style="font-size:12px;color:var(--text-muted);margin-top:10px;"></div>
+    </section>
+
     <section class="card empresas" id="seccion-empresas" style="margin-bottom:18px;"></section>
 
     <section class="card" style="padding:0;overflow:hidden;">
@@ -1025,6 +1031,30 @@
       tarjetaComercial.style.display = "none";
     }
 
+    const formasPagoFarmacia = state.datos && state.datos.formasPagoFarmacia;
+    const tarjetaFormasPago = document.getElementById("tarjeta-formas-pago-farmacia");
+    if (formasPagoFarmacia && (modo === "facturacion" || modo === "cobrado")) {
+      tarjetaFormasPago.style.display = "block";
+      const fp = formasPagoFarmacia.formasPago;
+      const stats = METODOS_PAGO_FARMACIA.map((m) => ({ label: ETIQUETAS_FORMA_PAGO_FARMACIA[m], valor: money(fp[m]) }));
+      stats.push({ label: "Cobrado total (caja)", valor: money(formasPagoFarmacia.cobradoCaja), destacado: true });
+      document.getElementById("grid-formas-pago-farmacia").innerHTML = stats
+        .map(
+          (s) => `
+        <div class="stat-comercial${s.destacado ? " destacado" : ""}">
+          <div class="label">${s.label}</div>
+          <div class="valor">${s.valor}</div>
+        </div>`
+        )
+        .join("");
+      document.getElementById("nota-formas-pago-farmacia").textContent =
+        `Incluye ventas del mes cobradas al momento y cobranzas de Cta. Cte. vieja (RC). ` +
+        `No incluye Cobertura (${money(formasPagoFarmacia.coberturaNeta)}) ni Cta. Cte. pendiente de este mes ` +
+        `(${money(formasPagoFarmacia.ctaCteNeta)}): esas quedan como Deuda hasta que se cobren.`;
+    } else {
+      tarjetaFormasPago.style.display = "none";
+    }
+
     const contEmpresas = document.getElementById("seccion-empresas");
     if (!state.empresa){
       const porEmpresaMap = new Map();
@@ -1231,11 +1261,29 @@
     return { filas, descartadas, prefijosVistos, totalLineas: lineas.length - 1 };
   }
 
+  // Formas de pago que sí son plata ya cobrada en caja (a diferencia de
+  // Cobertura y Cta. Cte., que quedan como Deuda). "Otros" y "MovBancario"
+  // son los nombres de columna del punto de venta; Gustavo los usa como
+  // "QR" y "Transferencias" respectivamente — ver ETIQUETAS_FORMA_PAGO_FARMACIA.
+  const METODOS_PAGO_FARMACIA = ["efectivo", "debito", "credito", "mercadoPago", "puntosPago", "movBancario", "otros"];
+  const ETIQUETAS_FORMA_PAGO_FARMACIA = {
+    efectivo: "Efectivo",
+    debito: "Débito",
+    credito: "Crédito",
+    mercadoPago: "Mercado Pago",
+    puntosPago: "Puntos de pago",
+    movBancario: "Transferencias",
+    otros: "QR",
+  };
+
   function ufpResumirPorPeriodo(filas) {
     const porPeriodo = new Map();
     for (const f of filas) {
       if (!porPeriodo.has(f.periodo)) {
-        porPeriodo.set(f.periodo, { facturado: 0, coberturaNeta: 0, ctaCteNeta: 0, rc: 0, cantFV: 0, cantNC: 0, cantRC: 0 });
+        porPeriodo.set(f.periodo, {
+          facturado: 0, coberturaNeta: 0, ctaCteNeta: 0, rc: 0, cantFV: 0, cantNC: 0, cantRC: 0,
+          formasPago: Object.fromEntries(METODOS_PAGO_FARMACIA.map((m) => [m, 0])),
+        });
       }
       const p = porPeriodo.get(f.periodo);
       if (f.prefijo === "FV" || f.prefijo === "NC") {
@@ -1247,6 +1295,10 @@
         p.rc += f.total;
         p.cantRC++;
       }
+      // Igual que en el backend: se suma en FV/NC (pago al momento) y en RC
+      // (cobranza de una Cta. Cte. vieja) porque las dos son plata que entró
+      // este período por esa forma de pago.
+      for (const metodo of METODOS_PAGO_FARMACIA) p.formasPago[metodo] += f[metodo] || 0;
     }
     for (const p of porPeriodo.values()) {
       p.cobradoInmediato = p.facturado - p.coberturaNeta - p.ctaCteNeta;
@@ -1280,6 +1332,14 @@
       descartadas.sinFecha > 0
         ? `<div class="ufp-aviso">${descartadas.sinFecha} fila(s) sin fecha reconocible (dd/mm/aaaa) — se ignoraron.</div>`
         : "";
+    const filasFormaPago = periodos
+      .map((p) => {
+        const r = porPeriodo.get(p);
+        const celdas = METODOS_PAGO_FARMACIA.map((m) => `<td>${money(r.formasPago[m])}</td>`).join("");
+        return `<tr><td>${formatearMes(p)}</td>${celdas}</tr>`;
+      })
+      .join("");
+    const encabezadoFormaPago = METODOS_PAGO_FARMACIA.map((m) => `<th>${ETIQUETAS_FORMA_PAGO_FARMACIA[m]}</th>`).join("");
     document.getElementById("ufp-resumen").innerHTML = `
       <table>
         <thead><tr>
@@ -1291,6 +1351,11 @@
       <div>Total de líneas leídas: ${totalLineas} · por tipo de comprobante: ${prefijosTexto}</div>
       <div>Se excluyeron ${descartadas.prefijoExcluido} fila(s) que no son FV/NC/RC (vueltos, movimientos de caja, egresos).</div>
       ${avisoDescartes}
+      <div class="ufp-sub" style="margin-top:14px;">Cobrado total, detallado por forma de pago</div>
+      <table>
+        <thead><tr><th>Período</th>${encabezadoFormaPago}</tr></thead>
+        <tbody>${filasFormaPago}</tbody>
+      </table>
     `;
     document.getElementById("ufp-resumen").style.display = "flex";
   }
