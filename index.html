@@ -365,6 +365,7 @@
     <section class="card" id="tarjeta-resumen-comercial" style="display:none;margin-bottom:18px;">
       <p class="eyebrow" style="margin-bottom:4px;">Datos comerciales de Salud Integral</p>
       <div id="grid-resumen-comercial" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(190px,1fr));gap:18px;margin-top:6px;"></div>
+      <div id="nota-resumen-comercial" style="font-size:12px;color:var(--text-muted);margin-top:10px;"></div>
     </section>
 
     <section class="card" id="tarjeta-formas-pago-farmacia" style="display:none;margin-bottom:18px;">
@@ -1006,18 +1007,29 @@
     }
 
     const resumenComercial = state.datos && state.datos.resumenComercialSIG;
+    const convenioBoreal = state.datos && state.datos.convenioBoreal;
     const tarjetaComercial = document.getElementById("tarjeta-resumen-comercial");
-    if (resumenComercial) {
+    // OJO: resumenComercial (Excel gerencial manual) y convenioBoreal (API en
+    // vivo) son dos fuentes independientes — no asumir que una implica la
+    // otra. Convenio Boreal tiene que mostrarse igual en un mes sin Excel
+    // comercial cargado todavía.
+    if (resumenComercial || (convenioBoreal && convenioBoreal.monto > 0)) {
       tarjetaComercial.style.display = "block";
-      const r = resumenComercial;
-      const stats = [
-        { label: "Cápitas nuevas", valor: r.capitasNuevas, destacado: false },
-        { label: "Planes superadores/adherentes", valor: r.planesSuperadoresAdherentes, destacado: false },
-        { label: "Recaudación Obra Social", valor: money(r.recaudacionObraSocial), destacado: false },
-        { label: "Recaudación Prepaga", valor: money(r.recaudacionPrepaga), destacado: false },
-        { label: "Recaudación Planes Superadores/Adherentes", valor: money(r.recaudacionPlanesSuperadores), destacado: false },
-        { label: "Recaudación total", valor: money(r.recaudacionTotal), destacado: true },
-      ];
+      const stats = [];
+      if (resumenComercial) {
+        const r = resumenComercial;
+        stats.push(
+          { label: "Cápitas nuevas", valor: r.capitasNuevas, destacado: false },
+          { label: "Planes superadores/adherentes", valor: r.planesSuperadoresAdherentes, destacado: false },
+          { label: "Recaudación Obra Social", valor: money(r.recaudacionObraSocial), destacado: false },
+          { label: "Recaudación Prepaga", valor: money(r.recaudacionPrepaga), destacado: false },
+          { label: "Recaudación Planes Superadores/Adherentes", valor: money(r.recaudacionPlanesSuperadores), destacado: false },
+          { label: "Recaudación total", valor: money(r.recaudacionTotal), destacado: true }
+        );
+      }
+      if (convenioBoreal && convenioBoreal.monto > 0) {
+        stats.push({ label: "Convenio Boreal", valor: money(convenioBoreal.monto), destacado: false });
+      }
       document.getElementById("grid-resumen-comercial").innerHTML = stats
         .map(
           (s) => `
@@ -1027,6 +1039,10 @@
         </div>`
         )
         .join("");
+      const notaComercial = document.getElementById("nota-resumen-comercial");
+      notaComercial.textContent = (convenioBoreal && convenioBoreal.monto > 0)
+        ? `Convenio Boreal: ${convenioBoreal.cantidadPrestaciones} prestación(es) este mes, sin comprobante propio en el sistema — se factura después a Paraná Salud. Queda como Deuda hasta que se cobre.`
+        : "";
     } else {
       tarjetaComercial.style.display = "none";
     }
