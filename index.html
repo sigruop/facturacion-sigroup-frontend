@@ -37,7 +37,7 @@
   .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 64px;}
 
   header.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:22px;}
-  .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin:0 0 4px;}
+  .eyebrow{font-size:12.5px;color:var(--text-muted);font-weight:500;margin:0 0 4px;}
   h1{font-family:"Manrope",sans-serif;font-weight:800;font-size:26px;margin:0;color:var(--text-primary);}
   .topbar-right{display:flex;align-items:center;gap:10px;}
   #ultima-actualizacion{font-size:12px;color:var(--text-muted);}
@@ -113,7 +113,7 @@
 
   .subfiltros{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:22px;}
   .subfiltros .campo{display:flex;align-items:center;gap:6px;position:relative;}
-  .subfiltros label{font-size:11.5px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .subfiltros label{font-size:12px;color:var(--text-muted);font-weight:600;}
   .subfiltros select, .subfiltros input[type="search"]{
     border:1px solid var(--border);background:var(--surface);border-radius:8px;
     padding:7px 11px;font-size:13px;color:var(--text-primary);font-family:inherit;
@@ -168,26 +168,14 @@
   .aviso-hero{margin-top:14px;padding:12px 16px;border-radius:10px;border-left:3px solid transparent;}
   .aviso-hero.tono-danger{background:var(--danger-light);border-left-color:var(--danger);}
   .aviso-hero.tono-warning{background:var(--warning-light);border-left-color:var(--warning);}
-  .aviso-hero .aviso-titulo{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
+  .aviso-hero .aviso-titulo{font-size:13.5px;font-weight:700;margin-bottom:5px;}
   .aviso-hero.tono-danger .aviso-titulo{color:var(--danger);}
   .aviso-hero.tono-warning .aviso-titulo{color:var(--warning);}
   .aviso-hero .aviso-monto{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:var(--text-primary);}
   .aviso-hero .aviso-detalle{font-size:12.5px;color:var(--text-secondary);margin-top:3px;}
 
-  .gauge-card{display:flex;flex-direction:column;align-items:center;justify-content:center;}
-  .gauge-card .label{font-size:13px;color:var(--text-secondary);font-weight:500;margin-bottom:4px;}
-  #gauge-pct{font-size:26px;font-weight:600;fill:var(--text-primary);font-family:"IBM Plex Mono",monospace;}
 
-  .empresas{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
 
-  .stat-comercial .label{font-size:12px;color:var(--text-secondary);margin-bottom:4px;}
-  .stat-comercial .valor{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:20px;font-weight:600;color:var(--text-primary);}
-  .stat-comercial.destacado .valor{color:var(--accent-dark);font-size:24px;}
-  .empresa-row{display:grid;grid-template-columns:170px 1fr 110px;align-items:center;gap:12px;font-size:13px;}
-  .empresa-row .nombre{font-weight:600;color:var(--text-primary);}
-  .empresa-row .barra-track{background:var(--surface-alt);border:1px solid var(--border);border-radius:999px;height:10px;overflow:hidden;}
-  .empresa-row .barra-fill{background:var(--accent);height:100%;border-radius:999px;}
-  .empresa-row .monto{text-align:right;color:var(--text-secondary);}
 
   .fp-row{margin-bottom:14px;}
   .fp-row:last-child{margin-bottom:0;}
@@ -199,7 +187,7 @@
 
   table{width:100%;border-collapse:collapse;font-size:13.5px;}
   thead th{
-    text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-muted);
+    text-align:left;font-size:12px;color:var(--text-muted);
     font-weight:600;padding:0 12px 10px;border-bottom:1px solid var(--border);white-space:nowrap;
   }
   thead th.num{text-align:right;}
@@ -228,9 +216,6 @@
 
   #estado-carga{padding:40px 0;text-align:center;color:var(--text-muted);font-size:14px;}
 
-  .modo-toggle{display:inline-flex;background:var(--surface-alt);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:16px;gap:2px;}
-  .modo-btn{border:none;background:transparent;padding:7px 18px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text-secondary);cursor:pointer;font-family:inherit;}
-  .modo-btn.activo{background:var(--surface);color:var(--text-primary);box-shadow:0 1px 3px rgba(23,35,51,.1);}
 
   #banner-aviso{
     display:none;background:#EAF2FB;border:1px solid #C9DCF2;color:#2A5C8A;
@@ -239,6 +224,198 @@
   #banner-aviso.visible{display:block;}
 
   footer{margin-top:30px;text-align:center;font-size:12px;color:var(--text-muted);}
+
+  /* ================= Pantalla "Facturado y cobrado" ================= */
+  :root{
+    /* Colores del gráfico: validados con validate_palette.js (CVD + contraste).
+       Facturado = azul, Cobrado = verde agua. Solo marcas y puntitos de leyenda;
+       el texto siempre va en los colores de texto. */
+    --serie-fact:#2A78D6;
+    --serie-cob:#1BAF7A;
+    --serie-deuda:#155E75;
+    --grilla:#E8ECEF;
+    --ok-texto:#006300;
+  }
+
+  /* Pestañas: "Facturado y cobrado" a la izquierda, "Deuda" aparte a la derecha */
+  .modo-toggle{display:flex;align-items:flex-end;gap:22px;border-bottom:1px solid var(--border);margin-bottom:18px;}
+  .modo-btn{
+    border:none;background:none;padding:10px 2px;margin-bottom:-1px;border-bottom:2px solid transparent;
+    font-family:"Manrope",sans-serif;font-size:15px;font-weight:700;color:var(--text-muted);cursor:pointer;
+  }
+  .modo-btn:hover{color:var(--text-secondary);}
+  .modo-btn.activo{color:var(--text-primary);border-bottom-color:var(--accent);}
+  .modo-btn[data-modo="deuda"]{margin-left:auto;}
+  .modo-btn:focus-visible, .grp:focus-visible, .seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px;}
+
+  /* Fila superior: dos tarjetas de cifras + gráfico de 3 meses */
+  .resumen-top{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;margin-bottom:16px;align-items:stretch;}
+  .kpi-col{display:grid;grid-template-rows:1fr 1fr;gap:16px;min-width:0;}
+  .kpi{padding:20px 22px;display:flex;flex-direction:column;gap:7px;min-width:0;}
+  .kpi-head{display:flex;align-items:center;gap:8px;}
+  .kpi-key{width:10px;height:10px;border-radius:3px;flex:none;}
+  .kpi-key.fact{background:var(--serie-fact);}
+  .kpi-key.cob{background:var(--serie-cob);}
+  .kpi-key.deuda{background:var(--serie-deuda);}
+  .kpi-titulo{margin:0;font-family:"Manrope",sans-serif;font-size:14px;font-weight:700;color:var(--text-secondary);}
+  .kpi-periodo{margin-left:auto;font-size:12.5px;color:var(--text-muted);white-space:nowrap;}
+  .kpi-valor{
+    font-family:"Manrope",sans-serif;font-weight:800;font-size:clamp(25px,7vw,32px);
+    letter-spacing:-.02em;line-height:1.1;color:var(--text-primary);overflow-wrap:anywhere;
+  }
+  .kpi-sub{font-size:12.5px;color:var(--text-secondary);line-height:1.5;}
+  .kpi-sub b{color:var(--text-primary);font-weight:600;}
+  .kpi-delta-fila{min-height:0;}
+  .kpi-delta{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;}
+  .kpi-delta.sube{color:var(--ok-texto);}
+  .kpi-delta.baja{color:var(--danger);}
+  .kpi-delta .vs{font-weight:500;color:var(--text-muted);}
+  .kpi-chip{
+    align-self:flex-start;background:var(--danger-light);color:var(--danger);border-radius:8px;
+    padding:5px 10px;font-size:12.5px;font-weight:600;
+  }
+  .kpi-chip b{font-weight:800;}
+  .kpi-nota{font-size:12px;color:var(--text-muted);}
+  .kpi-nota summary{cursor:pointer;width:max-content;}
+  .kpi-nota summary:hover{color:var(--accent);}
+  .kpi-nota p{margin:6px 0 0;line-height:1.5;}
+
+  /* Gráfico de 3 meses */
+  .chart-card{padding:20px 22px 16px;display:flex;flex-direction:column;min-width:0;}
+  .chart-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .chart-head h2, .tarjeta-titulo{margin:0;font-family:"Manrope",sans-serif;font-size:16px;font-weight:800;color:var(--text-primary);}
+  .chart-sub, .tarjeta-sub{margin:2px 0 0;font-size:12.5px;color:var(--text-muted);line-height:1.5;}
+  .chart-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .leyenda{display:flex;gap:14px;font-size:12.5px;color:var(--text-secondary);}
+  .leyenda span{display:inline-flex;align-items:center;gap:6px;}
+  .leyenda i, .grp-vals i{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none;}
+  .leyenda i.fact, .grp-vals i.fact{background:var(--serie-fact);}
+  .leyenda i.cob, .grp-vals i.cob{background:var(--serie-cob);}
+  .leyenda i.deuda{background:var(--serie-deuda);}
+  .seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);}
+  .seg button{
+    border:none;background:none;padding:6px 12px;font-family:inherit;font-size:12.5px;font-weight:600;
+    color:var(--text-secondary);cursor:pointer;
+  }
+  .seg button + button{border-left:1px solid var(--border);}
+  .seg button.activo{background:var(--text-primary);color:#fff;}
+
+  #chart-body{position:relative;flex:1;padding-top:4px;}
+  #chart-body{--alto-plot:240px;}
+  .plot{display:grid;margin-left:48px;}
+  .plot-fondo{grid-area:1/1;height:var(--alto-plot);position:relative;pointer-events:none;}
+  .grid-line{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--grilla);}
+  .grid-line span{
+    position:absolute;right:calc(100% + 8px);top:0;transform:translateY(-50%);
+    font-size:11px;color:var(--text-muted);white-space:nowrap;font-variant-numeric:tabular-nums;
+  }
+  .grupos{grid-area:1/1;display:flex;gap:4px;position:relative;z-index:1;}
+  .grp{
+    flex:1;min-width:0;display:flex;flex-direction:column;border:none;background:none;padding:0;
+    cursor:pointer;font-family:inherit;color:inherit;text-align:center;border-radius:10px;
+  }
+  .grp:hover{background:rgba(21,94,117,.04);}
+  .grp.sel{background:rgba(21,94,117,.07);}
+  .barras-area{height:var(--alto-plot);display:flex;align-items:flex-end;justify-content:center;gap:2px;padding:0 6px;}
+  .barra{width:24px;max-width:38%;border-radius:4px 4px 0 0;min-height:2px;transform-origin:bottom;flex:none;}
+  .barra.fact{background:var(--serie-fact);}
+  .barra.cob{background:var(--serie-cob);}
+  .barra.nula{min-height:0;height:0;}
+  .barra.espera{background:repeating-linear-gradient(135deg,#E8ECEF 0 5px,#F3F5F7 5px 10px);}
+  .grupos.anim .barra{animation:crece .55s cubic-bezier(.2,.7,.2,1) both;}
+  .grupos.anim .barra.cob{animation-delay:.07s;}
+  @keyframes crece{from{transform:scaleY(0);}to{transform:scaleY(1);}}
+  @media (prefers-reduced-motion:reduce){ .grupos.anim .barra{animation:none;} }
+  .grp-etq{padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:7px;}
+  .grp-mes{font-size:13px;font-weight:600;color:var(--text-secondary);line-height:1.2;}
+  .grp.sel .grp-mes{color:var(--text-primary);font-weight:800;}
+  .grupos.con-curso .grp-mes{min-height:32px;}
+  .grp-curso{display:block;font-size:11px;font-weight:500;color:var(--text-muted);}
+  .grp-vals{display:flex;flex-direction:column;gap:4px;align-items:flex-start;font-size:12.5px;color:var(--text-primary);font-variant-numeric:tabular-nums;}
+  .grp-vals span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+  .tip{
+    position:absolute;z-index:6;top:8px;left:0;pointer-events:none;opacity:0;transition:opacity .12s;
+    transform:translateX(-50%);background:var(--text-primary);color:#fff;border-radius:10px;
+    padding:10px 13px;font-size:12.5px;line-height:1.55;box-shadow:0 10px 26px rgba(23,35,51,.25);white-space:nowrap;
+  }
+  .tip.visible{opacity:1;}
+  .tip .tip-mes{font-weight:800;margin-bottom:3px;}
+  .tip .tip-fila{display:flex;align-items:center;gap:7px;}
+  .tip .tip-fila i{width:9px;height:9px;border-radius:2px;display:inline-block;}
+  .tip .tip-fila i.fact{background:#6DA7EC;}
+  .tip .tip-fila i.cob{background:#3ED6A0;}
+  .tip .tip-pie{margin-top:3px;color:#B9C4CF;}
+  .chart-pie{margin-top:10px;font-size:12px;color:var(--text-muted);line-height:1.5;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+  .chart-pie button{
+    border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:5px 11px;
+    font-family:inherit;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;
+  }
+  .tabla-mini{width:100%;border-collapse:collapse;font-size:13px;}
+  .tabla-mini th{text-align:left;font-size:12px;font-weight:600;color:var(--text-muted);padding:0 8px 8px 0;border-bottom:1px solid var(--border);}
+  .tabla-mini td{padding:9px 8px 9px 0;border-bottom:1px solid var(--border);}
+  .tabla-mini tr:last-child td{border-bottom:none;}
+  .tabla-mini .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .tabla-mini tr.sel td{font-weight:700;}
+
+  /* Deuda: cifra + medidor de cuánto del facturado sigue sin cobrarse */
+  .hero-deuda{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;margin-bottom:16px;align-items:start;}
+  .meter{height:8px;border-radius:999px;background:var(--grilla);overflow:hidden;margin-top:6px;}
+  .meter i{display:block;height:100%;background:var(--serie-deuda);border-radius:999px;}
+  /* Selectores de filtro: la opción más larga no debe ensanchar todo */
+  .subfiltros select{max-width:340px;}
+
+  /* Avisos (sin facturar) */
+  .alertas{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:16px;}
+  .alertas .aviso-hero{margin-top:0;}
+
+  /* Tarjetas secundarias */
+  .tarjeta-sub{margin-bottom:14px;}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+  .tile{background:var(--surface-alt);border-radius:10px;padding:12px 14px;min-width:0;}
+  .tile .t-label{font-size:12px;color:var(--text-secondary);margin-bottom:5px;line-height:1.35;}
+  .tile .t-valor{font-family:"Manrope",sans-serif;font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--text-primary);overflow-wrap:anywhere;}
+  .tile.destacado{background:var(--accent-light);}
+  .tile.destacado .t-valor{color:var(--accent-dark);}
+  .nota{font-size:12px;color:var(--text-muted);margin:12px 0 0;line-height:1.5;}
+  .fila-doble{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-bottom:16px;}
+  .lista-debitos{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2px 28px;}
+
+  /* Barras por categoría (empresa / tipo / origen) */
+  .barras-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .par-row{display:grid;grid-template-columns:170px minmax(0,1fr);gap:12px;align-items:center;padding:9px 0;border-top:1px solid var(--border);font-size:13px;}
+  .par-lista .par-row:first-child{border-top:none;}
+  .par-row .nombre{font-weight:600;color:var(--text-primary);line-height:1.35;}
+  .par-barras{display:flex;flex-direction:column;gap:4px;min-width:0;}
+  .par-linea{display:flex;align-items:center;gap:10px;}
+  .par-barra{flex:none;height:10px;min-width:2px;width:calc((100% - 150px) * var(--w, 0));border-radius:0 4px 4px 0;}
+  .par-barra.fact{background:var(--serie-fact);}
+  .par-barra.cob{background:var(--serie-cob);}
+  .par-barra.deuda{background:var(--serie-deuda);}
+  .par-monto{flex:none;min-width:130px;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--text-secondary);}
+
+  /* Detalle */
+  .detalle-head{padding:20px 24px 4px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+  .detalle-head .tarjeta-sub{margin-bottom:0;}
+
+  @media (max-width:900px){
+    .resumen-top, .hero-deuda{grid-template-columns:1fr;}
+    .kpi-col{grid-template-columns:1fr 1fr;grid-template-rows:auto;}
+  }
+  @media (max-width:600px){
+    .kpi-col{grid-template-columns:1fr;}
+    .par-row{grid-template-columns:1fr;gap:6px;}
+    #chart-body{--alto-plot:190px;}
+    .plot{margin-left:40px;}
+    .chart-card{padding:18px 14px 14px;}
+    .barras-area{padding:0 2px;}
+    .grp-etq{padding:10px 2px 12px;}
+    .grp-vals{font-size:12px;}
+    .modo-toggle{gap:16px;}
+    .subfiltros .campo{width:100%;}
+    .subfiltros select{flex:1;min-width:0;max-width:100%;}
+    .subfiltros input[type="search"]{min-width:0;width:100%;}
+    .detalle-head{padding:18px 16px 4px;}
+  }
 </style>
 </head>
 <body>
@@ -254,15 +431,15 @@
     </div>
     <div class="topbar-right">
       <span id="ultima-actualizacion"></span>
+      <button class="icon-btn" id="btn-refrescar" title="Actualizar datos" aria-label="Actualizar datos">↻</button>
       <button class="icon-btn" id="btn-upload-farmacia" title="Cargar ventas de Farmacia" aria-label="Cargar ventas de Farmacia">📤</button>
       <button class="icon-btn" id="btn-config" title="Configurar backend" aria-label="Configurar backend">⚙</button>
     </div>
   </header>
 
-  <div class="modo-toggle" id="modo-toggle">
-    <button type="button" class="modo-btn activo" data-modo="facturacion">Facturación</button>
-    <button type="button" class="modo-btn" data-modo="cobrado">Cobros</button>
-    <button type="button" class="modo-btn" data-modo="deuda">Deuda</button>
+  <div class="modo-toggle" id="modo-toggle" role="tablist" aria-label="Secciones">
+    <button type="button" class="modo-btn activo" data-modo="resumen" role="tab" aria-selected="true">Facturado y cobrado</button>
+    <button type="button" class="modo-btn" data-modo="deuda" role="tab" aria-selected="false">Deuda</button>
   </div>
 
   <div id="config-panel">
@@ -324,62 +501,137 @@
   <div id="estado-carga">Cargando datos…</div>
 
   <div id="contenido" style="display:none;">
-    <section class="hero">
-      <div class="card hero-total">
-        <div class="label" id="hero-label">Total facturado</div>
-        <div class="cifra mono" id="hero-cifra">$0,00</div>
-        <div class="sub" id="hero-sub"></div>
-        <div class="aviso-hero tono-danger" id="hero-debito" style="display:none;">
-          <div class="aviso-titulo">Debitado por obras sociales</div>
-          <div class="aviso-monto" id="hero-debito-monto">$0,00</div>
+
+    <!-- ===== Facturado y cobrado ===== -->
+    <div id="vista-resumen">
+      <section class="resumen-top">
+        <div class="kpi-col">
+          <article class="card kpi" aria-labelledby="kpi-fact-titulo">
+            <div class="kpi-head">
+              <span class="kpi-key fact" aria-hidden="true"></span>
+              <h2 class="kpi-titulo" id="kpi-fact-titulo">Facturado</h2>
+              <span class="kpi-periodo" id="kpi-fact-periodo"></span>
+            </div>
+            <div class="kpi-valor" id="kpi-fact-valor">$0,00</div>
+            <div class="kpi-delta-fila" id="kpi-fact-delta"></div>
+            <div class="kpi-sub" id="kpi-fact-sub"></div>
+            <div class="kpi-sub" id="kpi-fact-cobrado"></div>
+            <div class="kpi-chip" id="kpi-fact-debito" style="display:none;"></div>
+          </article>
+          <article class="card kpi" aria-labelledby="kpi-cob-titulo">
+            <div class="kpi-head">
+              <span class="kpi-key cob" aria-hidden="true"></span>
+              <h2 class="kpi-titulo" id="kpi-cob-titulo">Cobrado</h2>
+              <span class="kpi-periodo" id="kpi-cob-periodo"></span>
+            </div>
+            <div class="kpi-valor" id="kpi-cob-valor">$0,00</div>
+            <div class="kpi-delta-fila" id="kpi-cob-delta"></div>
+            <div class="kpi-sub" id="kpi-cob-sub"></div>
+            <div class="kpi-chip" id="kpi-cob-debito" style="display:none;"></div>
+            <details class="kpi-nota" id="kpi-cob-nota" style="display:none;">
+              <summary>Cómo se calcula</summary>
+              <p id="kpi-cob-nota-texto"></p>
+            </details>
+          </article>
         </div>
+
+        <article class="card chart-card" aria-labelledby="chart-titulo">
+          <div class="chart-head">
+            <div>
+              <h2 id="chart-titulo">Últimos 3 meses</h2>
+              <p class="chart-sub" id="chart-sub"></p>
+            </div>
+            <div class="chart-tools">
+              <div class="leyenda" role="list" aria-label="Referencias del gráfico">
+                <span role="listitem"><i class="fact"></i>Facturado</span>
+                <span role="listitem"><i class="cob"></i>Cobrado</span>
+              </div>
+              <div class="seg" id="seg-chart" role="group" aria-label="Ver los datos como">
+                <button type="button" data-vista="grafico" class="activo">Gráfico</button>
+                <button type="button" data-vista="tabla">Tabla</button>
+              </div>
+            </div>
+          </div>
+          <div id="chart-body"></div>
+          <div id="chart-tabla" style="display:none;"></div>
+          <div class="chart-pie" id="chart-pie"></div>
+        </article>
+      </section>
+
+      <section class="alertas" id="alertas" style="display:none;">
         <div class="aviso-hero tono-warning" id="hero-no-facturado" style="display:none;">
-          <div class="aviso-titulo">Sin facturar — falta documentación</div>
+          <div class="aviso-titulo">Sin facturar: falta documentación</div>
           <div class="aviso-monto" id="hero-no-facturado-monto">$0,00</div>
           <div class="aviso-detalle" id="hero-no-facturado-detalle"></div>
         </div>
         <div class="aviso-hero tono-warning" id="hero-no-facturado-2" style="display:none;">
-          <div class="aviso-titulo">Sin facturar — falta documentación (por centro)</div>
+          <div class="aviso-titulo">Sin facturar: falta documentación, por centro</div>
           <div class="aviso-monto" id="hero-no-facturado-2-monto">$0,00</div>
           <div class="aviso-detalle" id="hero-no-facturado-2-detalle"></div>
         </div>
-      </div>
-      <div class="card gauge-card" id="tarjeta-gauge">
-        <div class="label">% cobrado</div>
-        <svg viewBox="0 0 200 120" width="200" height="120">
-          <path d="M20,100 A80,80 0 0 1 180,100" fill="none" stroke="var(--surface-alt)" stroke-width="16" stroke-linecap="round" />
-          <path id="gauge-arc" d="M20,100 A80,80 0 0 1 180,100" fill="none" stroke="var(--accent)" stroke-width="16" stroke-linecap="round" stroke-dasharray="0 251.33" />
-          <text id="gauge-pct" x="100" y="95" text-anchor="middle">0%</text>
-        </svg>
-      </div>
-      <div class="card empresas" id="tarjeta-forma-pago" style="display:none;justify-content:center;">
-        <div class="label" style="margin-bottom:10px;">Débitos del período</div>
-        <div id="lista-forma-pago"></div>
-      </div>
-      <div class="card empresas" id="tarjeta-deuda-top" style="display:none;justify-content:center;">
-        <div class="label" style="margin-bottom:10px;">Top deudores</div>
-        <div id="lista-deuda-top"></div>
-      </div>
-    </section>
+      </section>
 
-    <section class="card" id="tarjeta-resumen-comercial" style="display:none;margin-bottom:18px;">
-      <p class="eyebrow" style="margin-bottom:4px;">Datos comerciales de Salud Integral</p>
-      <div id="grid-resumen-comercial" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(190px,1fr));gap:18px;margin-top:6px;"></div>
-      <div id="nota-resumen-comercial" style="font-size:12px;color:var(--text-muted);margin-top:10px;"></div>
-    </section>
+      <section class="card" id="tarjeta-debitos" style="display:none;margin-bottom:16px;">
+        <h2 class="tarjeta-titulo">Débitos de obras sociales</h2>
+        <p class="tarjeta-sub" id="debitos-sub"></p>
+        <div class="lista-debitos" id="lista-debitos"></div>
+      </section>
 
-    <section class="card" id="tarjeta-formas-pago-farmacia" style="display:none;margin-bottom:18px;">
-      <p class="eyebrow" id="titulo-formas-pago-farmacia" style="margin-bottom:4px;">Farmacia — por forma de pago</p>
-      <div id="grid-formas-pago-farmacia" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px,1fr));gap:18px;margin-top:6px;"></div>
-      <div id="nota-formas-pago-farmacia" style="font-size:12px;color:var(--text-muted);margin-top:10px;"></div>
-    </section>
+      <section class="card" id="tarjeta-resumen-comercial" style="display:none;margin-bottom:16px;">
+        <h2 class="tarjeta-titulo">Datos comerciales de Salud Integral</h2>
+        <p class="tarjeta-sub">Cargados a mano desde el Excel gerencial, más el convenio Boreal en vivo desde el sistema.</p>
+        <div class="tiles" id="grid-resumen-comercial"></div>
+        <p class="nota" id="nota-resumen-comercial"></p>
+      </section>
 
-    <section class="card empresas" id="seccion-empresas" style="margin-bottom:18px;"></section>
+      <section class="fila-doble" id="fila-farmacia" style="display:none;">
+        <article class="card">
+          <h2 class="tarjeta-titulo">Farmacia: cómo se facturó</h2>
+          <p class="tarjeta-sub">Ventas del mes por forma de pago, con Cobertura y Cta. Cte.</p>
+          <div class="tiles" id="tiles-farmacia-fact"></div>
+          <p class="nota" id="nota-farmacia-fact"></p>
+        </article>
+        <article class="card">
+          <h2 class="tarjeta-titulo">Farmacia: cómo se cobró</h2>
+          <p class="tarjeta-sub">Plata que entró en caja este mes.</p>
+          <div class="tiles" id="tiles-farmacia-cob"></div>
+          <p class="nota" id="nota-farmacia-cob"></p>
+        </article>
+      </section>
+    </div>
+
+    <!-- ===== Deuda ===== -->
+    <div id="vista-deuda" style="display:none;">
+      <section class="hero-deuda">
+        <article class="card kpi" aria-labelledby="hero-label">
+          <div class="kpi-head">
+            <span class="kpi-key deuda" aria-hidden="true"></span>
+            <h2 class="kpi-titulo" id="hero-label">Adeudado</h2>
+          </div>
+          <div class="kpi-valor" id="hero-cifra">$0,00</div>
+          <div class="kpi-sub" id="hero-sub"></div>
+          <div class="meter" aria-hidden="true"><i id="hero-meter-fill"></i></div>
+        </article>
+        <article class="card" id="tarjeta-deuda-top">
+          <h2 class="tarjeta-titulo" style="margin-bottom:12px;">Top deudores</h2>
+          <div id="lista-deuda-top"></div>
+        </article>
+      </section>
+    </div>
+
+    <!-- ===== Compartido ===== -->
+    <section class="card" id="seccion-empresas" style="margin-bottom:16px;"></section>
 
     <section class="card" style="padding:0;overflow:hidden;">
-      <div style="padding:20px 24px 4px;">
-        <p class="eyebrow" style="margin-bottom:2px;">Detalle</p>
-        <h2 style="font-family:'Manrope',sans-serif;font-size:16px;margin:0;font-weight:700;">Facturas del período</h2>
+      <div class="detalle-head">
+        <div>
+          <h2 class="tarjeta-titulo" id="detalle-titulo">Facturas del período</h2>
+          <p class="tarjeta-sub" id="detalle-sub"></p>
+        </div>
+        <div class="seg" id="seg-detalle" role="group" aria-label="Qué detalle mostrar">
+          <button type="button" data-detalle="facturado" class="activo">Facturado</button>
+          <button type="button" data-detalle="cobrado">Cobrado</button>
+        </div>
       </div>
       <div style="padding:12px 24px 24px;overflow-x:auto;">
         <table>
@@ -401,7 +653,7 @@
           <tbody id="tabla-body"></tbody>
           <tfoot>
             <tr>
-              <td colspan="5">Total (<span id="pie-cantidad">0</span> facturas)</td>
+              <td colspan="5">Total (<span id="pie-cantidad">0</span> <span id="pie-palabra">facturas</span>)</td>
               <td class="num mono" id="pie-monto">$0,00</td>
               <td class="num mono" id="pie-cobrado">$0,00</td>
               <td class="num mono" id="pie-saldo">$0,00</td>
@@ -432,18 +684,29 @@
   const MESES_ES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
   const FILAS_POR_PAGINA = 50;
 
+  const PRIMER_MES = "2026-01";            // primer mes del selector (y del gráfico)
+  const VIGENCIA_CACHE_MS = 5 * 60 * 1000; // cuánto se reutiliza una respuesta del backend
+
   const state = {
-    modo: "facturacion",  // "facturacion" (realizado) | "cobrado" (cash-basis)
-    mes: null,        // "2026-06"
-    todosLosMeses: false, // solo aplica en modo deuda
+    modo: "resumen",      // "resumen" (facturado + cobrado) | "deuda"
+    mes: null,            // "2026-06"
+    todosLosMeses: false, // solo aplica en deuda
     grupoExpandido: null, // clave del grupo agregado que está desplegado en la tabla, si hay alguno
-    empresa: "",       // "" = todas, o SIG / CEMEI / NEO
-    unidad: "",         // "" = todas (CEMEI SRL / CEMEI ODONTOLOGIA / MEDICINA LABORAL / etc.)
-    tipoFactura: "",     // "" = todos (Pago de cuotas / Venta de ordenes, propio de Salud Integral)
-    origenes: [],        // [] = todos, o varios origenes seleccionados
+    empresa: "",          // "" = todas, o SIG / CEMEI / NEO / FARMACIA
+    unidad: "",           // "" = todas (CEMEI SRL / CEMEI ODONTOLOGIA / MEDICINA LABORAL / etc.)
+    tipoFactura: "",      // "" = todos (Pago de cuotas / Venta de ordenes, propio de Salud Integral)
+    origenes: [],         // [] = todos, o varios origenes seleccionados
     busqueda: "",
     filasVisibles: FILAS_POR_PAGINA,
-    datos: null,        // última respuesta cruda del backend
+    detalle: "facturado", // qué lista muestra la tabla en "resumen": "facturado" | "cobrado"
+    vistaTablaGrafico: false, // gráfico de 3 meses: false = barras, true = tabla
+    datos: null,          // deuda: última respuesta cruda del backend
+    fact: null,           // resumen: { ok, data | error } de /api/facturacion
+    cob: null,            // resumen: { ok, data | error } de /api/cobros
+    seq: 0,               // para descartar respuestas viejas si se cambia de mes/empresa en el medio
+    pendientes: new Set(),// pedidos de meses anteriores en curso (gráfico)
+    fallidos: new Set(),  // pedidos de meses anteriores que fallaron (gráfico)
+    animarGrafico: false, // las barras crecen solo la primera vez que se pintan tras cargar
   };
 
   function generarMeses(){
@@ -529,27 +792,6 @@
     actualizarClasesFiltros();
   }
 
-  function pintarBarras(contenedor, items){
-    const filtrados = items.filter((i) => i.monto > 0).sort((a, b) => b.monto - a.monto);
-    if (filtrados.length <= 1){
-      contenedor.style.display = "none";
-      contenedor.innerHTML = "";
-      return;
-    }
-    contenedor.style.display = "flex";
-    const max = Math.max(...filtrados.map((i) => i.monto), 1);
-    contenedor.innerHTML = filtrados
-      .map(
-        (i) => `
-      <div class="empresa-row">
-        <div class="nombre">${escaparHtml(i.nombre)}</div>
-        <div class="barra-track"><div class="barra-fill" style="width:${(i.monto / max) * 100}%"></div></div>
-        <div class="monto mono">${money(i.monto)}</div>
-      </div>`
-      )
-      .join("");
-  }
-
   function badgeEstado(estado){
     const clase = estado === "Pagada" ? "pagada" : estado === "Anulada" ? "anulada" : "vigente";
     return `<span class="badge ${clase}">${estado}</span>`;
@@ -601,7 +843,7 @@
 
   function construirOpciones(campoDato, selectId, contenedorId, valorActual, textoDefault){
     const valores = new Set();
-    (state.datos && state.datos.facturas || []).forEach((f) => { if (f[campoDato]) valores.add(f[campoDato]); });
+    registrosBase().forEach((f) => { if (f[campoDato]) valores.add(f[campoDato]); });
     const select = document.getElementById(selectId);
     const contenedor = document.getElementById(contenedorId);
     select.innerHTML = `<option value="">${textoDefault}</option>`;
@@ -632,7 +874,7 @@
 
   function construirMultiselectOrigen(){
     const valores = new Set();
-    (state.datos && state.datos.facturas || []).forEach((f) => { if (f.origen) valores.add(f.origen); });
+    registrosBase().forEach((f) => { if (f.origen) valores.add(f.origen); });
     const campo = document.getElementById("campo-origen");
     const panel = document.getElementById("panel-origen");
     if (valores.size === 0){
@@ -666,8 +908,19 @@
     actualizarBotonOrigen(opciones);
   }
 
-  function facturasFiltradas(){
-    let lista = (state.datos && state.datos.facturas) || [];
+  // Registros sobre los que se arman las opciones de los filtros: en Facturado
+  // y cobrado salen de las dos listas juntas; en Deuda, de la lista de deuda.
+  function registrosBase(){
+    if (state.modo === "deuda") return (state.datos && state.datos.facturas) || [];
+    const f = state.fact && state.fact.ok ? state.fact.data.facturas || [] : [];
+    const c = state.cob && state.cob.ok ? state.cob.data.cobros || [] : [];
+    return f.concat(c);
+  }
+
+  // Aplica los filtros de la pantalla (unidad, tipo, origen, búsqueda) a
+  // cualquier lista. El gráfico de 3 meses usa la misma función con los
+  // registros de cada mes, así las barras siempre respetan lo que se filtró.
+  function aplicarFiltros(lista){
     if (state.unidad) lista = lista.filter((f) => f.unidad === state.unidad);
     if (state.tipoFactura) lista = lista.filter((f) => f.tipoFactura === state.tipoFactura);
     if (state.origenes.length > 0) lista = lista.filter((f) => state.origenes.includes(f.origen));
@@ -831,24 +1084,203 @@
     return individuales.concat(agregados).sort(ordenarPorFecha);
   }
 
-  function renderizar(){
-    document.getElementById("estado-carga").style.display = "none";
-    document.getElementById("contenido").style.display = "block";
-    document.getElementById("ultima-actualizacion").textContent =
-      "Actualizado " + new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+  // ===================================================================
+  // Datos: pedidos al backend con caché en memoria
+  // ===================================================================
+  // El gráfico de 3 meses necesita Facturación y Cobros de los 2 meses
+  // anteriores. Para no repetir pedidos pesados (el backend corre en Render
+  // gratis) cada respuesta buena se guarda por recurso|mes|empresa y se
+  // reutiliza hasta VIGENCIA_CACHE_MS. El botón ↻ la vacía.
+  const cacheApi = new Map();
+  const enVuelo = new Map();
 
-    const errores = (state.datos && state.datos.errores) || [];
+  function claveApi(recurso, mes, empresa){
+    return `${recurso}|${mes}|${empresa || "*"}`;
+  }
+
+  function pedirApi(recurso, mes, empresa, forzar){
+    const clave = claveApi(recurso, mes, empresa);
+    const previo = cacheApi.get(clave);
+    if (!forzar && previo && Date.now() - previo.t < VIGENCIA_CACHE_MS) return Promise.resolve(previo);
+    if (enVuelo.has(clave)) return enVuelo.get(clave);
+    const empresaParam = empresa ? `&empresa=${empresa}` : "";
+    const url = `${CONFIG.backendUrl}/api/${recurso}?desde=${mes}-01&hasta=${ultimoDiaDeMes(mes)}${empresaParam}`;
+    const promesa = fetch(url)
+      .then(async (resp) => {
+        if (!resp.ok) throw new Error(`El backend respondió ${resp.status}`);
+        return { ok: true, data: await resp.json(), t: Date.now() };
+      })
+      .catch((err) => ({ ok: false, error: err.message, t: Date.now() }))
+      .then((entrada) => {
+        enVuelo.delete(clave);
+        // Los errores no se guardan: el próximo intento vuelve a pedir.
+        if (entrada.ok) cacheApi.set(clave, entrada); else cacheApi.delete(clave);
+        return entrada;
+      });
+    enVuelo.set(clave, promesa);
+    return promesa;
+  }
+
+  async function correrConConcurrencia(tareas, limite){
+    let i = 0;
+    const trabajadores = Array.from({ length: Math.min(limite, tareas.length) }, async () => {
+      while (i < tareas.length){
+        const tarea = tareas[i++];
+        await tarea();
+      }
+    });
+    await Promise.all(trabajadores);
+  }
+
+  function limpiarCache(){
+    cacheApi.clear();
+    state.fallidos.clear();
+    state.pendientes.clear();
+  }
+
+  // ===================================================================
+  // Utilidades de formato y cálculo
+  // ===================================================================
+  const NOMBRES_EMPRESA = { SIG: "Salud Integral", CEMEI: "CEMEI", NEO: "Neoform", FARMACIA: "Farmacia" };
+
+  function suma(lista, campo){
+    return lista.reduce((a, f) => a + (Number(f[campo]) || 0), 0);
+  }
+
+  // 1.234.567 -> "1,2 M" · 98.000 -> "98 mil" · para etiquetas del gráfico
+  function compacto(n){
+    const a = Math.abs(n);
+    const f = (x, d) => x.toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: d });
+    if (a >= 1e9) return f(n / 1e9, 1) + " mil M";
+    if (a >= 1e6) return f(n / 1e6, 1) + " M";
+    if (a >= 1e4) return f(n / 1e3, 0) + " mil";
+    return f(n, 0);
+  }
+
+  // Tope "redondo" del eje: 1, 1,2, 1,5, 2, 2,5, 3, 4, 5, 6, 8 o 10 × potencia de 10,
+  // para que las barras ocupen bien el alto sin quedar pegadas al borde.
+  function maximoAmable(v){
+    if (!(v > 0)) return 1;
+    const p = Math.pow(10, Math.floor(Math.log10(v)));
+    const n = v / p;
+    const k = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10].find((x) => n <= x + 1e-9);
+    return k * p;
+  }
+
+  function mesesDeSerie(mes){
+    const [y, m] = mes.split("-").map(Number);
+    const meses = [];
+    for (let i = 2; i >= 0; i--){
+      const d = new Date(y, m - 1 - i, 1);
+      meses.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+    return meses.filter((x) => x >= PRIMER_MES);
+  }
+
+  function mesEnCurso(){
+    const meses = generarMeses();
+    return meses[meses.length - 1];
+  }
+
+  function descripcionFiltrosTexto(){
+    const partes = [state.empresa ? (NOMBRES_EMPRESA[state.empresa] || state.empresa) : "todas las empresas"];
+    if (state.unidad) partes.push(`unidad: ${state.unidad}`);
+    if (state.tipoFactura) partes.push(`tipo: ${state.tipoFactura}`);
+    if (state.origenes.length > 0) partes.push(`origen: ${state.origenes.join(", ")}`);
+    return partes.join(" · ");
+  }
+
+  function descripcionFiltros(){
+    return escaparHtml(descripcionFiltrosTexto());
+  }
+
+  function fijarTexto(id, texto){
+    document.getElementById(id).textContent = texto;
+  }
+
+  function tilesHtml(stats){
+    return stats
+      .map(
+        (s) => `
+      <div class="tile${s.destacado ? " destacado" : ""}">
+        <div class="t-label">${s.label}</div>
+        <div class="t-valor">${s.valor}</div>
+      </div>`
+      )
+      .join("");
+  }
+
+  // Categoría con la que se agrupan las barras de abajo: por empresa cuando
+  // se ven todas, por tipo de factura en Salud Integral, por origen en CEMEI.
+  function claveCategoria(f){
+    if (!state.empresa) return f.empresa || "Sin empresa";
+    if (state.empresa === "SIG") return f.tipoFactura || "Sin clasificar";
+    if (state.empresa === "CEMEI") return esSeña(f) ? "Señas" : (f.origen || "Sin origen");
+    return null;
+  }
+
+  function tituloCategoria(){
+    if (!state.empresa) return "por empresa";
+    if (state.empresa === "SIG") return "por tipo de factura";
+    if (state.empresa === "CEMEI") return "por origen";
+    return null;
+  }
+
+  // Barras horizontales por categoría. `series` define cuántas barras lleva
+  // cada fila: dos en Facturado y cobrado (azul y verde), una en Deuda.
+  function pintarBarrasCategorias(titulo, items, series){
+    const cont = document.getElementById("seccion-empresas");
+    const totalDe = (i) => series.reduce((a, s) => a + Math.max(0, i[s.campo]), 0);
+    const validos = items
+      .filter((i) => series.some((s) => i[s.campo] > 0))
+      .sort((a, b) => totalDe(b) - totalDe(a));
+    if (!titulo || validos.length <= 1){
+      cont.style.display = "none";
+      cont.innerHTML = "";
+      return;
+    }
+    cont.style.display = "block";
+    const max = Math.max(...validos.flatMap((i) => series.map((s) => i[s.campo])), 1);
+    const leyenda = series.length > 1
+      ? `<div class="leyenda">${series.map((s) => `<span><i class="${s.clase}"></i>${s.etiqueta}</span>`).join("")}</div>`
+      : "";
+    const filas = validos
+      .map(
+        (i) => `
+      <div class="par-row">
+        <div class="nombre">${escaparHtml(i.nombre)}</div>
+        <div class="par-barras">
+          ${series
+            .map(
+              (s) => `
+          <div class="par-linea">
+            <div class="par-barra ${s.clase}" style="--w:${Math.max(0, i[s.campo]) / max}"></div>
+            <span class="par-monto">${money(i[s.campo])}</span>
+          </div>`
+            )
+            .join("")}
+        </div>
+      </div>`
+      )
+      .join("");
+    cont.innerHTML = `
+      <div class="barras-head">
+        <h2 class="tarjeta-titulo">${series.length > 1 ? "Facturado y cobrado" : "Deuda"} ${titulo}</h2>
+        ${leyenda}
+      </div>
+      <div class="par-lista">${filas}</div>`;
+  }
+
+  function pintarBanners(errores, aviso){
     const bannerErrores = document.getElementById("banner-errores");
     if (errores.length){
       bannerErrores.classList.add("visible");
-      bannerErrores.innerHTML = "<b>Aviso:</b> no se pudo consultar: " + errores.join(" · ");
+      bannerErrores.innerHTML = "<b>Aviso:</b> no se pudo consultar: " + errores.map(escaparHtml).join(" · ");
     } else {
       bannerErrores.classList.remove("visible");
       bannerErrores.innerHTML = "";
     }
-
     const bannerAviso = document.getElementById("banner-aviso");
-    const aviso = state.datos && state.datos.aviso;
     if (aviso){
       bannerAviso.classList.add("visible");
       bannerAviso.textContent = aviso;
@@ -856,283 +1288,14 @@
       bannerAviso.classList.remove("visible");
       bannerAviso.textContent = "";
     }
+  }
 
-    const modo = state.modo; // "facturacion" | "cobrado" | "deuda"
-    const campoValor = modo === "cobrado" ? "cobrado" : modo === "deuda" ? "saldo" : "monto";
-
-    const lista = facturasFiltradas();
-    const totalFacturado = lista.reduce((a, f) => a + f.monto, 0);
-    const totalCobrado = lista.reduce((a, f) => a + f.cobrado, 0);
-    const totalSaldo = lista.reduce((a, f) => a + f.saldo, 0);
-    const totalPrincipal = lista.reduce((a, f) => a + f[campoValor], 0);
-    const porcentajeCobrado = totalFacturado > 0 ? +((totalCobrado / totalFacturado) * 100).toFixed(2) : 0;
-    const porcentajeDeuda = totalFacturado > 0 ? +((totalSaldo / totalFacturado) * 100).toFixed(2) : 0;
-
-    const empresaLabel = state.empresa
-      ? document.querySelector(`.filtro-chip[data-empresa="${state.empresa}"]`).textContent
-      : "todas las empresas";
-    const origenLabel = state.origenes.length > 0 ? ` · origen: ${state.origenes.join(", ")}` : "";
-    const unidadLabel = state.unidad ? ` · unidad: ${state.unidad}` : "";
-    const tipoLabel = state.tipoFactura ? ` · tipo: ${state.tipoFactura}` : "";
-    const etiquetaHero = { facturacion: "Total facturado", cobrado: "Total cobrado", deuda: "Total adeudado" }[modo];
-    const periodoTexto = state.todosLosMeses ? "histórico completo" : formatearMes(state.mes);
-    document.getElementById("hero-label").textContent = `${etiquetaHero} — ${periodoTexto}`;
-    document.getElementById("hero-cifra").textContent = money(totalPrincipal);
-    const palabraCantidad = modo === "cobrado" ? "cobros" : "facturas";
-    const cantidadTexto = `<b>${lista.length}</b> ${palabraCantidad}`;
-    let porcentajeTexto = "";
-    if (modo === "facturacion") porcentajeTexto = ` · <b>${porcentajeCobrado}%</b> cobrado`;
-    if (modo === "deuda") porcentajeTexto = ` · <b>${porcentajeDeuda}%</b> del facturado sigue sin cobrarse`;
-    document.getElementById("hero-sub").innerHTML =
-      `${cantidadTexto}${porcentajeTexto} · ${empresaLabel}${unidadLabel}${tipoLabel}${origenLabel}`;
-
-    const totalDebitoVista = lista.reduce((a, f) => a + (f.debitos || 0), 0);
-    const elDebito = document.getElementById("hero-debito");
-    if (totalDebitoVista > 0){
-      elDebito.style.display = "block";
-      document.getElementById("hero-debito-monto").textContent = money(totalDebitoVista);
-    } else {
-      elDebito.style.display = "none";
-    }
-
-    const noFacturadoCEMEI = state.datos && state.datos.noFacturadoCEMEI;
-    const noFacturadoPorCentro = state.datos && state.datos.noFacturadoSIG;
-    const elNoFacturado = document.getElementById("hero-no-facturado");
-    if (modo === "facturacion" && noFacturadoCEMEI){
-      elNoFacturado.style.display = "block";
-      document.getElementById("hero-no-facturado-monto").textContent = money(noFacturadoCEMEI.monto);
-      document.getElementById("hero-no-facturado-detalle").textContent = `Convenio: ${noFacturadoCEMEI.convenio}`;
-    } else {
-      elNoFacturado.style.display = "none";
-    }
-
-    const elNoFacturado2 = document.getElementById("hero-no-facturado-2");
-    if (modo === "facturacion" && noFacturadoPorCentro){
-      // Si hay una "Unidad" seleccionada, esta tarjeta debe mostrar solamente
-      // el/los centro(s) del Excel que correspondan a esa unidad (ej. al
-      // filtrar "CEMEI Odontología" no debe aparecer el monto de
-      // "Consultorios"). Sin unidad seleccionada ("Todas") se muestra el
-      // acumulado completo, igual que antes.
-      let centrosVisibles = noFacturadoPorCentro.porCentro;
-      let montoVisible = noFacturadoPorCentro.monto;
-      let cantidadVisible = noFacturadoPorCentro.cantidad;
-      if (state.unidad){
-        const unidadNorm = normalizarTexto(state.unidad);
-        centrosVisibles = noFacturadoPorCentro.porCentro.filter((c) => {
-          const centroNorm = normalizarTexto(c.nombre);
-          return centroNorm && (unidadNorm.includes(centroNorm) || centroNorm.includes(unidadNorm));
-        });
-        montoVisible = centrosVisibles.reduce((a, c) => a + c.monto, 0);
-        cantidadVisible = centrosVisibles.reduce((a, c) => a + (c.cantidad || 0), 0);
-      }
-      if (centrosVisibles.length === 0){
-        elNoFacturado2.style.display = "none";
-      } else {
-        elNoFacturado2.style.display = "block";
-        document.getElementById("hero-no-facturado-2-monto").textContent = money(montoVisible);
-        const topCentros = centrosVisibles
-          .slice(0, 4)
-          .map((c) => `${c.nombre}: ${money(c.monto)}`)
-          .join(" · ");
-        document.getElementById("hero-no-facturado-2-detalle").textContent =
-          `${cantidadVisible} prestaciones (documentación) · ${topCentros}`;
-      }
-    } else {
-      elNoFacturado2.style.display = "none";
-    }
-
-    document.getElementById("tarjeta-gauge").style.display = modo === "facturacion" ? "flex" : "none";
-    document.getElementById("tarjeta-forma-pago").style.display = modo === "cobrado" ? "flex" : "none";
-    document.getElementById("tarjeta-deuda-top").style.display = modo === "deuda" ? "flex" : "none";
-
-    if (modo === "cobrado"){
-      const porDebitoMap = new Map();
-      lista.forEach((f) => {
-        if (!(f.debitos > 0)) return;
-        const clave = state.empresa ? f.cliente : `${f.cliente} · ${f.empresa}`;
-        porDebitoMap.set(clave, (porDebitoMap.get(clave) || 0) + f.debitos);
-      });
-      const porDebito = Array.from(porDebitoMap.entries())
-        .map(([nombre, monto]) => ({ nombre, monto }))
-        .sort((a, b) => b.monto - a.monto);
-      const maxDebito = Math.max(...porDebito.map((d) => d.monto), 1);
-      document.getElementById("lista-forma-pago").innerHTML = porDebito.length
-        ? porDebito
-            .map(
-              (d) => `
-          <div class="fp-row">
-            <div class="fp-label">${escaparHtml(d.nombre)}</div>
-            <div class="fp-linea">
-              <div class="barra-track"><div class="barra-fill" style="width:${(d.monto / maxDebito) * 100}%"></div></div>
-              <div class="fp-monto">${money(d.monto)}</div>
-            </div>
-          </div>`
-            )
-            .join("")
-        : `<div style="color:var(--text-muted);font-size:13px;">Sin débitos en este período</div>`;
-    } else if (modo === "deuda"){
-      const porDeudorMap = new Map();
-      lista.forEach((f) => {
-        const clave = state.empresa ? f.cliente : `${f.cliente} · ${f.empresa}`;
-        porDeudorMap.set(clave, (porDeudorMap.get(clave) || 0) + f.saldo);
-      });
-      const topDeudores = Array.from(porDeudorMap.entries())
-        .map(([nombre, saldo]) => ({ nombre, saldo }))
-        .filter((d) => d.saldo > 0)
-        .sort((a, b) => b.saldo - a.saldo)
-        .slice(0, 8);
-      const maxDeuda = Math.max(...topDeudores.map((d) => d.saldo), 1);
-      document.getElementById("lista-deuda-top").innerHTML = topDeudores.length
-        ? topDeudores
-            .map(
-              (d) => `
-          <div class="fp-row">
-            <div class="fp-label">${escaparHtml(d.nombre)}</div>
-            <div class="fp-linea">
-              <div class="barra-track"><div class="barra-fill" style="width:${(d.saldo / maxDeuda) * 100}%"></div></div>
-              <div class="fp-monto">${money(d.saldo)}</div>
-            </div>
-          </div>`
-            )
-            .join("")
-        : `<div style="color:var(--text-muted);font-size:13px;">Sin deuda pendiente</div>`;
-    } else {
-      const pct = Math.max(0, Math.min(100, porcentajeCobrado || 0));
-      const circunferencia = 251.33;
-      document.getElementById("gauge-arc").setAttribute(
-        "stroke-dasharray",
-        `${(pct / 100) * circunferencia} ${circunferencia}`
-      );
-      document.getElementById("gauge-pct").textContent = pct.toFixed(1) + "%";
-    }
-
-    const resumenComercial = state.datos && state.datos.resumenComercialSIG;
-    const convenioBoreal = state.datos && state.datos.convenioBoreal;
-    const tarjetaComercial = document.getElementById("tarjeta-resumen-comercial");
-    // OJO: resumenComercial (Excel gerencial manual) y convenioBoreal (API en
-    // vivo) son dos fuentes independientes — no asumir que una implica la
-    // otra. Convenio Boreal tiene que mostrarse igual en un mes sin Excel
-    // comercial cargado todavía.
-    if (resumenComercial || (convenioBoreal && convenioBoreal.monto > 0)) {
-      tarjetaComercial.style.display = "block";
-      const stats = [];
-      if (resumenComercial) {
-        const r = resumenComercial;
-        stats.push(
-          { label: "Cápitas nuevas", valor: r.capitasNuevas, destacado: false },
-          { label: "Planes superadores/adherentes", valor: r.planesSuperadoresAdherentes, destacado: false },
-          { label: "Recaudación Obra Social", valor: money(r.recaudacionObraSocial), destacado: false },
-          { label: "Recaudación Prepaga", valor: money(r.recaudacionPrepaga), destacado: false },
-          { label: "Recaudación Planes Superadores/Adherentes", valor: money(r.recaudacionPlanesSuperadores), destacado: false },
-          { label: "Recaudación total", valor: money(r.recaudacionTotal), destacado: true }
-        );
-      }
-      if (convenioBoreal && convenioBoreal.monto > 0) {
-        stats.push({ label: "Convenio Boreal", valor: money(convenioBoreal.monto), destacado: false });
-      }
-      document.getElementById("grid-resumen-comercial").innerHTML = stats
-        .map(
-          (s) => `
-        <div class="stat-comercial${s.destacado ? " destacado" : ""}">
-          <div class="label">${s.label}</div>
-          <div class="valor">${s.valor}</div>
-        </div>`
-        )
-        .join("");
-      const notaComercial = document.getElementById("nota-resumen-comercial");
-      notaComercial.textContent = (convenioBoreal && convenioBoreal.monto > 0)
-        ? `Convenio Boreal: ${convenioBoreal.cantidadPrestaciones} prestación(es) este mes, sin comprobante propio en el sistema — se factura después a Paraná Salud. Queda como Deuda hasta que se cobre.`
-        : "";
-    } else {
-      tarjetaComercial.style.display = "none";
-    }
-
-    const formasPagoFarmacia = state.datos && state.datos.formasPagoFarmacia;
-    const tarjetaFormasPago = document.getElementById("tarjeta-formas-pago-farmacia");
-    if (formasPagoFarmacia && (modo === "facturacion" || modo === "cobrado")) {
-      tarjetaFormasPago.style.display = "block";
-      if (modo === "facturacion") {
-        // Acá "forma de pago" es cómo se compuso cada venta del mes: incluye
-        // Cobertura y Cta. Cte. como dos formas de pago más (todavía no
-        // cobradas, pero son la forma de pago real de esa venta) — la suma
-        // de todo coincide con el Total facturado de arriba.
-        document.getElementById("titulo-formas-pago-farmacia").textContent = "Farmacia — facturado del período, por forma de pago";
-        const fp = formasPagoFarmacia.formasPagoFacturado;
-        const stats = METODOS_PAGO_FARMACIA.map((m) => ({ label: ETIQUETAS_FORMA_PAGO_FARMACIA[m], valor: money(fp[m]) }));
-        stats.push({ label: "Cobertura", valor: money(fp.cobertura) });
-        stats.push({ label: "Cta. Cte.", valor: money(fp.ctaCte) });
-        stats.push({ label: "Facturado total", valor: money(formasPagoFarmacia.facturado), destacado: true });
-        document.getElementById("grid-formas-pago-farmacia").innerHTML = stats
-          .map(
-            (s) => `
-          <div class="stat-comercial${s.destacado ? " destacado" : ""}">
-            <div class="label">${s.label}</div>
-            <div class="valor">${s.valor}</div>
-          </div>`
-          )
-          .join("");
-        document.getElementById("nota-formas-pago-farmacia").textContent =
-          `Cobertura y Cta. Cte. son la forma de pago de la venta, pero todavía no están cobradas — quedan como Deuda hasta que se cobren.`;
-      } else {
-        // Acá "forma de pago" es la plata que efectivamente entró en caja
-        // este mes: ventas cobradas al momento + cobranzas de Cta. Cte.
-        // vieja (RC). Cobertura y Cta. Cte. de este mes NO entran porque
-        // todavía no se cobraron.
-        document.getElementById("titulo-formas-pago-farmacia").textContent = "Farmacia — cobrado del período, por forma de pago";
-        const fp = formasPagoFarmacia.formasPagoCobrado;
-        const stats = METODOS_PAGO_FARMACIA.map((m) => ({ label: ETIQUETAS_FORMA_PAGO_FARMACIA[m], valor: money(fp[m]) }));
-        stats.push({ label: "Cobrado total (caja)", valor: money(formasPagoFarmacia.cobradoCaja), destacado: true });
-        document.getElementById("grid-formas-pago-farmacia").innerHTML = stats
-          .map(
-            (s) => `
-          <div class="stat-comercial${s.destacado ? " destacado" : ""}">
-            <div class="label">${s.label}</div>
-            <div class="valor">${s.valor}</div>
-          </div>`
-          )
-          .join("");
-        document.getElementById("nota-formas-pago-farmacia").textContent =
-          `Incluye ventas del mes cobradas al momento y cobranzas de Cta. Cte. vieja (RC). ` +
-          `No incluye Cobertura (${money(formasPagoFarmacia.coberturaNeta)}) ni Cta. Cte. pendiente de este mes ` +
-          `(${money(formasPagoFarmacia.ctaCteNeta)}): esas quedan como Deuda hasta que se cobren.`;
-      }
-    } else {
-      tarjetaFormasPago.style.display = "none";
-    }
-
-    const contEmpresas = document.getElementById("seccion-empresas");
-    if (!state.empresa){
-      const porEmpresaMap = new Map();
-      lista.forEach((f) => {
-        if (!porEmpresaMap.has(f.empresa)) porEmpresaMap.set(f.empresa, { nombre: f.empresa, monto: 0 });
-        porEmpresaMap.get(f.empresa).monto += f[campoValor];
-      });
-      pintarBarras(contEmpresas, Array.from(porEmpresaMap.values()));
-    } else if (state.empresa === "SIG"){
-      const porTipoMap = new Map();
-      lista.forEach((f) => {
-        const clave = f.tipoFactura || "Sin clasificar";
-        if (!porTipoMap.has(clave)) porTipoMap.set(clave, { nombre: clave, monto: 0 });
-        porTipoMap.get(clave).monto += f[campoValor];
-      });
-      pintarBarras(contEmpresas, Array.from(porTipoMap.values()));
-    } else if (state.empresa === "CEMEI"){
-      const porOrigenMap = new Map();
-      lista.forEach((f) => {
-        const clave = esSeña(f) ? "Señas" : (f.origen || "Sin origen");
-        if (!porOrigenMap.has(clave)) porOrigenMap.set(clave, { nombre: clave, monto: 0 });
-        porOrigenMap.get(clave).monto += f[campoValor];
-      });
-      pintarBarras(contEmpresas, Array.from(porOrigenMap.values()));
-    } else {
-      contEmpresas.style.display = "none";
-      contEmpresas.innerHTML = "";
-    }
-
+  // Tabla de detalle + pie de totales (la usan las dos pestañas)
+  function pintarTabla(lista, palabra){
     const tbody = document.getElementById("tabla-body");
     const listaTabla = agruparDetalle(lista);
     if (listaTabla.length === 0){
-      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:24px;">Sin facturas para este filtro</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--text-muted);padding:24px;">Sin ${palabra} para este filtro</td></tr>`;
     } else {
       const visibles = listaTabla.slice(0, state.filasVisibles);
       tbody.innerHTML = visibles
@@ -1156,50 +1319,610 @@
       btnMas.style.display = "none";
     }
 
-    const totalDebitos = lista.reduce((a, f) => a + (f.debitos || 0), 0);
-    document.getElementById("pie-cantidad").textContent = lista.length;
-    document.getElementById("pie-monto").textContent = money(totalFacturado);
+    const totalMonto = suma(lista, "monto");
+    const totalCobrado = suma(lista, "cobrado");
+    const totalDebitos = suma(lista, "debitos");
+    fijarTexto("pie-cantidad", lista.length);
+    fijarTexto("pie-palabra", palabra);
+    fijarTexto("pie-monto", money(totalMonto));
     document.getElementById("pie-cobrado").innerHTML =
       money(totalCobrado) +
       (totalDebitos > 0 ? `<div class="subtexto" style="color:var(--danger);font-weight:600;">Débito: ${money(totalDebitos)}</div>` : "");
-    document.getElementById("pie-saldo").textContent = money(totalFacturado - totalCobrado);
-    document.getElementById("pie-pct").textContent = porcentajeCobrado + "%";
+    fijarTexto("pie-saldo", money(totalMonto - totalCobrado));
+    fijarTexto("pie-pct", (totalMonto > 0 ? +((totalCobrado / totalMonto) * 100).toFixed(2) : 0) + "%");
   }
 
-  async function cargarDatos(){
+  // ===================================================================
+  // Gráfico de los últimos 3 meses
+  // ===================================================================
+  function entradaMes(recurso, mes){
+    if (mes === state.mes){
+      const e = recurso === "facturacion" ? state.fact : state.cob;
+      return e && e.ok ? e : null;
+    }
+    const e = cacheApi.get(claveApi(recurso, mes, state.empresa));
+    return e && e.ok ? e : null;
+  }
+
+  function calcularSerie(){
+    return mesesDeSerie(state.mes).map((m) => {
+      const ef = entradaMes("facturacion", m);
+      const ec = entradaMes("cobros", m);
+      let estado = "ok";
+      if (!ef || !ec){
+        let fallo;
+        if (m === state.mes){
+          fallo = (state.fact && !state.fact.ok) || (state.cob && !state.cob.ok);
+        } else {
+          fallo = state.fallidos.has(claveApi("facturacion", m, state.empresa)) ||
+                  state.fallidos.has(claveApi("cobros", m, state.empresa));
+        }
+        estado = fallo ? "error" : "cargando";
+      }
+      return {
+        mes: m,
+        estado,
+        facturado: ef ? suma(aplicarFiltros(ef.data.facturas || []), "monto") : null,
+        cobrado: ec ? suma(aplicarFiltros(ec.data.cobros || []), "cobrado") : null,
+      };
+    });
+  }
+
+  function textoMesGrafico(s){
+    return formatearMes(s.mes) + (s.mes === mesEnCurso() ? " (en curso)" : "");
+  }
+
+  function pintarDelta(id, actual, previo, mesPrevio){
+    const el = document.getElementById(id);
+    // Contra un mes completo no tiene sentido comparar un mes todavía en curso.
+    if (state.mes === mesEnCurso() || actual == null || previo == null || previo <= 0){
+      el.innerHTML = "";
+      return;
+    }
+    const pct = ((actual - previo) / previo) * 100;
+    const sube = pct >= 0;
+    el.innerHTML =
+      `<span class="kpi-delta ${sube ? "sube" : "baja"}">` +
+      `<span aria-hidden="true">${sube ? "▲" : "▼"}</span>` +
+      `${sube ? "+" : "−"}${Math.abs(pct).toLocaleString("es-AR", { maximumFractionDigits: 1 })}%` +
+      ` <span class="vs">vs ${formatearMes(mesPrevio)}</span></span>`;
+  }
+
+  function actualizarGrafico(){
+    if (state.modo === "deuda" || !(state.fact || state.cob)) return;
+    const serie = calcularSerie();
+    const maxVal = Math.max(0, ...serie.flatMap((s) => [s.facturado || 0, s.cobrado || 0]));
+    const tope = maximoAmable(maxVal);
+
+    fijarTexto("chart-sub", `${serie.length === 1 ? "Primer mes con datos" : "Facturado y cobrado mes a mes"} · ${descripcionFiltrosTexto()}`);
+
+    const lineas = [tope, tope / 2, 0]
+      .map((v) => `<div class="grid-line" style="bottom:${(v / tope) * 100}%"><span>${v === 0 ? "0" : compacto(v)}</span></div>`)
+      .join("");
+
+    const barra = (valor, clase, estado) => {
+      if (valor == null) return estado === "cargando" ? `<div class="barra espera" style="height:34%"></div>` : `<div class="barra nula"></div>`;
+      return `<div class="barra ${clase}" style="height:${Math.max(0, valor / tope) * 100}%"></div>`;
+    };
+    const etiqueta = (valor, estado) =>
+      valor == null ? (estado === "cargando" ? "…" : "—") : "$" + compacto(valor);
+
+    const grupos = serie
+      .map((s) => {
+        const sel = s.mes === state.mes;
+        const nombre = formatearMes(s.mes);
+        const aria =
+          `${textoMesGrafico(s)}: facturado ${s.facturado == null ? "sin datos" : money(s.facturado)}, ` +
+          `cobrado ${s.cobrado == null ? "sin datos" : money(s.cobrado)}.` + (sel ? " Mes seleccionado." : " Tocar para seleccionar este mes.");
+        return `
+      <button type="button" class="grp${sel ? " sel" : ""}" data-mes="${s.mes}" aria-label="${escaparHtml(aria)}"${sel ? ' aria-current="true"' : ""}>
+        <div class="barras-area">${barra(s.facturado, "fact", s.estado)}${barra(s.cobrado, "cob", s.estado)}</div>
+        <div class="grp-etq">
+          <span class="grp-mes">${nombre}${s.mes === mesEnCurso() ? '<span class="grp-curso">en curso</span>' : ""}</span>
+          <span class="grp-vals">
+            <span><i class="fact"></i>${etiqueta(s.facturado, s.estado)}</span>
+            <span><i class="cob"></i>${etiqueta(s.cobrado, s.estado)}</span>
+          </span>
+        </div>
+      </button>`;
+      })
+      .join("");
+
+    const animar = state.animarGrafico;
+    state.animarGrafico = false;
+    document.getElementById("chart-body").innerHTML = `
+      <div class="plot" role="group" aria-label="Facturado y cobrado, últimos 3 meses">
+        <div class="plot-fondo">${lineas}</div>
+        <div class="grupos${animar ? " anim" : ""}${serie.some((x) => x.mes === mesEnCurso()) ? " con-curso" : ""}">${grupos}</div>
+      </div>
+      <div class="tip" id="chart-tip" role="presentation"></div>`;
+
+    // Vista en tabla (misma información, para leer cifras exactas)
+    document.getElementById("chart-tabla").innerHTML = `
+      <table class="tabla-mini">
+        <thead><tr><th>Mes</th><th class="num">Facturado</th><th class="num">Cobrado</th><th class="num">Cobrado sobre facturado</th></tr></thead>
+        <tbody>${serie
+          .map((s) => {
+            const ratio = s.facturado > 0 && s.cobrado != null ? ((s.cobrado / s.facturado) * 100).toLocaleString("es-AR", { maximumFractionDigits: 1 }) + "%" : "—";
+            return `<tr class="${s.mes === state.mes ? "sel" : ""}"><td>${textoMesGrafico(s)}</td><td class="num">${s.facturado == null ? "—" : money(s.facturado)}</td><td class="num">${s.cobrado == null ? "—" : money(s.cobrado)}</td><td class="num">${ratio}</td></tr>`;
+          })
+          .join("")}</tbody>
+      </table>`;
+
+    const hayError = serie.some((s) => s.estado === "error");
+    const hayCargando = serie.some((s) => s.estado === "cargando");
+    document.getElementById("chart-pie").innerHTML =
+      `<span>${hayCargando ? "Cargando los meses anteriores… " : ""}Cobrado es la plata que entró en cada mes, de facturas de cualquier fecha. Tocá un mes para verlo en detalle.</span>` +
+      (hayError ? `<button type="button" id="btn-reintentar-meses">Reintentar meses con error</button>` : "");
+
+    // Variación contra el mes anterior (en las tarjetas)
+    const idx = serie.findIndex((s) => s.mes === state.mes);
+    const previo = idx > 0 ? serie[idx - 1] : null;
+    pintarDelta("kpi-fact-delta", idx >= 0 ? serie[idx].facturado : null, previo && previo.facturado, previo && previo.mes);
+    pintarDelta("kpi-cob-delta", idx >= 0 ? serie[idx].cobrado : null, previo && previo.cobrado, previo && previo.mes);
+
+    aplicarVistaGrafico();
+  }
+
+  function aplicarVistaGrafico(){
+    const tabla = state.vistaTablaGrafico;
+    document.getElementById("chart-body").style.display = tabla ? "none" : "block";
+    document.getElementById("chart-tabla").style.display = tabla ? "block" : "none";
+    document.querySelectorAll("#seg-chart button").forEach((b) => {
+      b.classList.toggle("activo", (b.dataset.vista === "tabla") === tabla);
+    });
+  }
+
+  function mostrarTooltip(grp){
+    const tip = document.getElementById("chart-tip");
+    const cuerpo = document.getElementById("chart-body");
+    if (!tip || !grp) return;
+    const s = calcularSerie().find((x) => x.mes === grp.dataset.mes);
+    if (!s) return;
+    const ratio = s.facturado > 0 && s.cobrado != null
+      ? ((s.cobrado / s.facturado) * 100).toLocaleString("es-AR", { maximumFractionDigits: 1 }) + "% cobrado sobre facturado"
+      : "";
+    tip.innerHTML =
+      `<div class="tip-mes">${textoMesGrafico(s)}</div>` +
+      `<div class="tip-fila"><i class="fact"></i>Facturado ${s.facturado == null ? "sin datos" : money(s.facturado)}</div>` +
+      `<div class="tip-fila"><i class="cob"></i>Cobrado ${s.cobrado == null ? "sin datos" : money(s.cobrado)}</div>` +
+      (ratio ? `<div class="tip-pie">${ratio}</div>` : "");
+    const rc = grp.getBoundingClientRect();
+    const rb = cuerpo.getBoundingClientRect();
+    tip.classList.add("visible");
+    const mitad = tip.offsetWidth / 2;
+    const centro = rc.left - rb.left + rc.width / 2;
+    tip.style.left = Math.min(Math.max(centro, mitad + 4), Math.max(mitad + 4, rb.width - mitad - 4)) + "px";
+    // Se apoya justo arriba de la barra más alta del mes para no taparla
+    // (si no hay barras, arriba del área del gráfico).
+    const barras = Array.from(grp.querySelectorAll(".barra:not(.nula)"));
+    const techo = barras.length ? Math.min(...barras.map((b) => b.getBoundingClientRect().top)) : grp.getBoundingClientRect().top;
+    tip.style.top = Math.round(techo - rb.top - tip.offsetHeight - 8) + "px";
+  }
+
+  function ocultarTooltip(){
+    const tip = document.getElementById("chart-tip");
+    if (tip) tip.classList.remove("visible");
+  }
+
+  // Trae en segundo plano los 2 meses anteriores (Facturación y Cobros) para
+  // completar el gráfico. De a 2 pedidos por vez para no saturar el backend,
+  // y se descartan si el usuario ya cambió de mes o de empresa.
+  async function precargarAnteriores(seq){
+    const meses = mesesDeSerie(state.mes).filter((m) => m !== state.mes);
+    const empresa = state.empresa;
+    const tareas = [];
+    meses.forEach((m) => {
+      ["facturacion", "cobros"].forEach((recurso) => {
+        const clave = claveApi(recurso, m, empresa);
+        const e = cacheApi.get(clave);
+        if (e && Date.now() - e.t < VIGENCIA_CACHE_MS) return;
+        state.pendientes.add(clave);
+        state.fallidos.delete(clave);
+        tareas.push(async () => {
+          if (seq !== state.seq){
+            state.pendientes.delete(clave);
+            return;
+          }
+          const entrada = await pedirApi(recurso, m, empresa);
+          state.pendientes.delete(clave);
+          if (!entrada.ok) state.fallidos.add(clave);
+          if (seq === state.seq) actualizarGrafico();
+        });
+      });
+    });
+    if (tareas.length === 0) return;
+    await correrConConcurrencia(tareas, 2);
+  }
+
+  // ===================================================================
+  // Pantalla "Facturado y cobrado"
+  // ===================================================================
+  function renderizarResumen(){
+    const f = state.fact;
+    const c = state.cob;
+    const dataF = f && f.ok ? f.data : null;
+    const dataC = c && c.ok ? c.data : null;
+    const listaF = dataF ? aplicarFiltros(dataF.facturas || []) : [];
+    const listaC = dataC ? aplicarFiltros(dataC.cobros || []) : [];
+
+    // Avisos del backend + pedidos que fallaron enteros
+    const errores = [];
+    if (f && !f.ok) errores.push(`Facturación: ${f.error}`);
+    if (c && !c.ok) errores.push(`Cobros: ${c.error}`);
+    [dataF, dataC].forEach((d) => {
+      ((d && d.errores) || []).forEach((e) => { if (!errores.includes(e)) errores.push(e); });
+    });
+    pintarBanners(errores, dataF && dataF.aviso);
+
+    const periodo = formatearMes(state.mes) + (state.mes === mesEnCurso() ? " · en curso" : "");
+    fijarTexto("kpi-fact-periodo", periodo);
+    fijarTexto("kpi-cob-periodo", periodo);
+
+    // --- Tarjeta Facturado ---
+    const totalFact = suma(listaF, "monto");
+    const cobradoDeFact = suma(listaF, "cobrado");
+    const pctCobradoDeFact = totalFact > 0 ? +((cobradoDeFact / totalFact) * 100).toFixed(1) : 0;
+    fijarTexto("kpi-fact-valor", dataF ? money(totalFact) : "—");
+    document.getElementById("kpi-fact-sub").innerHTML = dataF
+      ? `<b>${listaF.length}</b> ${listaF.length === 1 ? "factura" : "facturas"} · ${descripcionFiltros()}`
+      : "No se pudo cargar la facturación.";
+    document.getElementById("kpi-fact-cobrado").innerHTML = dataF
+      ? `De lo facturado ya se cobró <b>${money(cobradoDeFact)}</b> (<b>${pctCobradoDeFact.toLocaleString("es-AR")}%</b>)`
+      : "";
+    const debitoF = suma(listaF, "debitos");
+    const chipF = document.getElementById("kpi-fact-debito");
+    if (dataF && debitoF > 0){
+      chipF.style.display = "block";
+      chipF.innerHTML = `Debitado por obras sociales <b>${money(debitoF)}</b>`;
+    } else {
+      chipF.style.display = "none";
+    }
+
+    // --- Tarjeta Cobrado ---
+    const totalCob = suma(listaC, "cobrado");
+    fijarTexto("kpi-cob-valor", dataC ? money(totalCob) : "—");
+    document.getElementById("kpi-cob-sub").innerHTML = dataC
+      ? `<b>${listaC.length}</b> ${listaC.length === 1 ? "cobro" : "cobros"} · plata que entró en el mes, de facturas de cualquier fecha`
+      : "No se pudieron cargar los cobros.";
+    const debitoC = suma(listaC, "debitos");
+    const chipC = document.getElementById("kpi-cob-debito");
+    if (dataC && debitoC > 0){
+      chipC.style.display = "block";
+      chipC.innerHTML = `Debitado por obras sociales <b>${money(debitoC)}</b>`;
+    } else {
+      chipC.style.display = "none";
+    }
+    const nota = document.getElementById("kpi-cob-nota");
+    if (dataC && dataC.aviso){
+      nota.style.display = "block";
+      fijarTexto("kpi-cob-nota-texto", dataC.aviso);
+    } else {
+      nota.style.display = "none";
+    }
+
+    // --- Sin facturar (CEMEI) ---
+    const noFacturadoCEMEI = dataF && dataF.noFacturadoCEMEI;
+    const noFacturadoPorCentro = dataF && dataF.noFacturadoSIG;
+    const elNoFacturado = document.getElementById("hero-no-facturado");
+    if (noFacturadoCEMEI){
+      elNoFacturado.style.display = "block";
+      fijarTexto("hero-no-facturado-monto", money(noFacturadoCEMEI.monto));
+      fijarTexto("hero-no-facturado-detalle", `Convenio: ${noFacturadoCEMEI.convenio}`);
+    } else {
+      elNoFacturado.style.display = "none";
+    }
+
+    const elNoFacturado2 = document.getElementById("hero-no-facturado-2");
+    let hayNoFacturado2 = false;
+    if (noFacturadoPorCentro){
+      // Con una "Unidad" elegida solo se muestran los centros del Excel que
+      // le corresponden (ej. al filtrar "CEMEI Odontología" no aparece
+      // "Consultorios"). Sin unidad ("Todas") va el acumulado completo.
+      let centrosVisibles = noFacturadoPorCentro.porCentro;
+      let montoVisible = noFacturadoPorCentro.monto;
+      let cantidadVisible = noFacturadoPorCentro.cantidad;
+      if (state.unidad){
+        const unidadNorm = normalizarTexto(state.unidad);
+        centrosVisibles = noFacturadoPorCentro.porCentro.filter((ce) => {
+          const centroNorm = normalizarTexto(ce.nombre);
+          return centroNorm && (unidadNorm.includes(centroNorm) || centroNorm.includes(unidadNorm));
+        });
+        montoVisible = centrosVisibles.reduce((a, ce) => a + ce.monto, 0);
+        cantidadVisible = centrosVisibles.reduce((a, ce) => a + (ce.cantidad || 0), 0);
+      }
+      if (centrosVisibles.length > 0){
+        hayNoFacturado2 = true;
+        elNoFacturado2.style.display = "block";
+        fijarTexto("hero-no-facturado-2-monto", money(montoVisible));
+        const topCentros = centrosVisibles.slice(0, 4).map((ce) => `${ce.nombre}: ${money(ce.monto)}`).join(" · ");
+        fijarTexto("hero-no-facturado-2-detalle", `${cantidadVisible} prestaciones (documentación) · ${topCentros}`);
+      }
+    }
+    if (!hayNoFacturado2) elNoFacturado2.style.display = "none";
+    document.getElementById("alertas").style.display = (noFacturadoCEMEI || hayNoFacturado2) ? "grid" : "none";
+
+    // --- Débitos del período (lista por cliente) ---
+    const tarjetaDebitos = document.getElementById("tarjeta-debitos");
+    const porDebitoMap = new Map();
+    listaC.forEach((r) => {
+      if (!(r.debitos > 0)) return;
+      const clave = state.empresa ? r.cliente : `${r.cliente} · ${r.empresa}`;
+      porDebitoMap.set(clave, (porDebitoMap.get(clave) || 0) + r.debitos);
+    });
+    if (porDebitoMap.size > 0){
+      const porDebito = Array.from(porDebitoMap.entries())
+        .map(([nombre, monto]) => ({ nombre, monto }))
+        .sort((a, b) => b.monto - a.monto);
+      const maxDebito = Math.max(...porDebito.map((d) => d.monto), 1);
+      tarjetaDebitos.style.display = "block";
+      fijarTexto("debitos-sub", "Lo que las obras sociales descontaron de los cobros del mes.");
+      document.getElementById("lista-debitos").innerHTML = porDebito
+        .map(
+          (d) => `
+        <div class="fp-row">
+          <div class="fp-label">${escaparHtml(d.nombre)}</div>
+          <div class="fp-linea">
+            <div class="barra-track"><div class="barra-fill" style="width:${(d.monto / maxDebito) * 100}%;background:var(--danger)"></div></div>
+            <div class="fp-monto">${money(d.monto)}</div>
+          </div>
+        </div>`
+        )
+        .join("");
+    } else {
+      tarjetaDebitos.style.display = "none";
+    }
+
+    // --- Datos comerciales de Salud Integral + Convenio Boreal ---
+    // Son dos fuentes independientes (Excel gerencial manual y API en vivo):
+    // Boreal tiene que verse igual en un mes sin Excel comercial cargado.
+    const resumenComercial = dataF && dataF.resumenComercialSIG;
+    const convenioBoreal = dataF && dataF.convenioBoreal;
+    const tarjetaComercial = document.getElementById("tarjeta-resumen-comercial");
+    if (resumenComercial || (convenioBoreal && convenioBoreal.monto > 0)){
+      tarjetaComercial.style.display = "block";
+      const stats = [];
+      if (resumenComercial){
+        const r = resumenComercial;
+        stats.push(
+          { label: "Cápitas nuevas", valor: r.capitasNuevas },
+          { label: "Planes superadores/adherentes", valor: r.planesSuperadoresAdherentes },
+          { label: "Recaudación Obra Social", valor: money(r.recaudacionObraSocial) },
+          { label: "Recaudación Prepaga", valor: money(r.recaudacionPrepaga) },
+          { label: "Recaudación Planes Superadores/Adherentes", valor: money(r.recaudacionPlanesSuperadores) },
+          { label: "Recaudación total", valor: money(r.recaudacionTotal), destacado: true }
+        );
+      }
+      if (convenioBoreal && convenioBoreal.monto > 0){
+        stats.push({ label: "Convenio Boreal", valor: money(convenioBoreal.monto) });
+      }
+      document.getElementById("grid-resumen-comercial").innerHTML = tilesHtml(stats);
+      fijarTexto(
+        "nota-resumen-comercial",
+        convenioBoreal && convenioBoreal.monto > 0
+          ? `Convenio Boreal: ${convenioBoreal.cantidadPrestaciones} prestación(es) este mes, sin comprobante propio en el sistema. Se factura después a Paraná Salud y queda como Deuda hasta que se cobre.`
+          : ""
+      );
+    } else {
+      tarjetaComercial.style.display = "none";
+    }
+
+    // --- Farmacia: formas de pago (facturado y cobrado, una al lado de la otra) ---
+    const fp = (dataF && dataF.formasPagoFarmacia) || (dataC && dataC.formasPagoFarmacia);
+    const filaFarmacia = document.getElementById("fila-farmacia");
+    if (fp){
+      filaFarmacia.style.display = "grid";
+      // Facturado: cómo se compuso cada venta del mes. Cobertura y Cta. Cte.
+      // son formas de pago reales de la venta aunque todavía no estén cobradas,
+      // y la suma coincide con el Facturado de arriba.
+      const ff = fp.formasPagoFacturado;
+      const statsFact = METODOS_PAGO_FARMACIA.map((m) => ({ label: ETIQUETAS_FORMA_PAGO_FARMACIA[m], valor: money(ff[m]) }));
+      statsFact.push({ label: "Cobertura", valor: money(ff.cobertura) });
+      statsFact.push({ label: "Cta. Cte.", valor: money(ff.ctaCte) });
+      statsFact.push({ label: "Facturado total", valor: money(fp.facturado), destacado: true });
+      document.getElementById("tiles-farmacia-fact").innerHTML = tilesHtml(statsFact);
+      fijarTexto("nota-farmacia-fact", "Cobertura y Cta. Cte. todavía no están cobradas: quedan como Deuda hasta que se cobren.");
+      // Cobrado: la plata que efectivamente entró en caja este mes (ventas
+      // cobradas al momento + cobranzas de Cta. Cte. vieja, RC).
+      const fc = fp.formasPagoCobrado;
+      const statsCob = METODOS_PAGO_FARMACIA.map((m) => ({ label: ETIQUETAS_FORMA_PAGO_FARMACIA[m], valor: money(fc[m]) }));
+      statsCob.push({ label: "Cobrado total (caja)", valor: money(fp.cobradoCaja), destacado: true });
+      document.getElementById("tiles-farmacia-cob").innerHTML = tilesHtml(statsCob);
+      fijarTexto(
+        "nota-farmacia-cob",
+        `Incluye ventas del mes cobradas al momento y cobranzas de Cta. Cte. vieja (RC). ` +
+        `No incluye Cobertura (${money(fp.coberturaNeta)}) ni Cta. Cte. pendiente de este mes (${money(fp.ctaCteNeta)}).`
+      );
+    } else {
+      filaFarmacia.style.display = "none";
+    }
+
+    // --- Barras por categoría (facturado y cobrado) ---
+    const titulo = tituloCategoria();
+    const mapa = new Map();
+    const asegurar = (nombre) => {
+      if (!mapa.has(nombre)) mapa.set(nombre, { nombre, fact: 0, cob: 0 });
+      return mapa.get(nombre);
+    };
+    if (titulo){
+      listaF.forEach((r) => { asegurar(claveCategoria(r)).fact += r.monto; });
+      listaC.forEach((r) => { asegurar(claveCategoria(r)).cob += r.cobrado; });
+    }
+    pintarBarrasCategorias(
+      titulo,
+      Array.from(mapa.values()),
+      [
+        { campo: "fact", clase: "fact", etiqueta: "Facturado" },
+        { campo: "cob", clase: "cob", etiqueta: "Cobrado" },
+      ]
+    );
+
+    // --- Detalle ---
+    const verCobrado = state.detalle === "cobrado";
+    const listaDetalle = verCobrado ? listaC : listaF;
+    fijarTexto("detalle-titulo", verCobrado ? "Cobros del período" : "Facturas del período");
+    fijarTexto(
+      "detalle-sub",
+      verCobrado
+        ? "Plata que entró en el mes, según la fecha de cobro."
+        : "Facturas emitidas en el mes, con lo que ya se cobró de cada una."
+    );
+    document.getElementById("seg-detalle").style.display = "inline-flex";
+    document.querySelectorAll("#seg-detalle button").forEach((b) => {
+      b.classList.toggle("activo", (b.dataset.detalle === "cobrado") === verCobrado);
+    });
+    pintarTabla(listaDetalle, verCobrado ? "cobros" : "facturas");
+
+    actualizarGrafico();
+  }
+
+  // ===================================================================
+  // Pantalla "Deuda"
+  // ===================================================================
+  function renderizarDeuda(){
+    const d = state.datos || {};
+    pintarBanners(d.errores || [], d.aviso);
+
+    const lista = aplicarFiltros(d.facturas || []);
+    const totalFacturado = suma(lista, "monto");
+    const totalSaldo = suma(lista, "saldo");
+    const porcentajeDeuda = totalFacturado > 0 ? +((totalSaldo / totalFacturado) * 100).toFixed(2) : 0;
+    const periodoTexto = state.todosLosMeses ? "histórico completo" : formatearMes(state.mes);
+
+    fijarTexto("hero-label", `Adeudado · ${periodoTexto}`);
+    document.getElementById("hero-meter-fill").style.width = Math.max(0, Math.min(100, porcentajeDeuda)) + "%";
+    fijarTexto("hero-cifra", money(totalSaldo));
+    document.getElementById("hero-sub").innerHTML =
+      `<b>${lista.length}</b> facturas · <b>${porcentajeDeuda}%</b> del facturado sigue sin cobrarse · ${descripcionFiltros()}`;
+
+    const porDeudorMap = new Map();
+    lista.forEach((f) => {
+      const clave = state.empresa ? f.cliente : `${f.cliente} · ${f.empresa}`;
+      porDeudorMap.set(clave, (porDeudorMap.get(clave) || 0) + f.saldo);
+    });
+    const topDeudores = Array.from(porDeudorMap.entries())
+      .map(([nombre, saldo]) => ({ nombre, saldo }))
+      .filter((x) => x.saldo > 0)
+      .sort((a, b) => b.saldo - a.saldo)
+      .slice(0, 8);
+    const maxDeuda = Math.max(...topDeudores.map((x) => x.saldo), 1);
+    document.getElementById("lista-deuda-top").innerHTML = topDeudores.length
+      ? topDeudores
+          .map(
+            (x) => `
+        <div class="fp-row">
+          <div class="fp-label">${escaparHtml(x.nombre)}</div>
+          <div class="fp-linea">
+            <div class="barra-track"><div class="barra-fill" style="width:${(x.saldo / maxDeuda) * 100}%"></div></div>
+            <div class="fp-monto">${money(x.saldo)}</div>
+          </div>
+        </div>`
+          )
+          .join("")
+      : `<div style="color:var(--text-muted);font-size:13px;">Sin deuda pendiente</div>`;
+
+    const titulo = tituloCategoria();
+    const mapa = new Map();
+    if (titulo){
+      lista.forEach((f) => {
+        const k = claveCategoria(f);
+        if (!mapa.has(k)) mapa.set(k, { nombre: k, saldo: 0 });
+        mapa.get(k).saldo += f.saldo;
+      });
+    }
+    pintarBarrasCategorias(titulo, Array.from(mapa.values()), [{ campo: "saldo", clase: "deuda", etiqueta: "Deuda" }]);
+
+    fijarTexto("detalle-titulo", "Detalle de la deuda");
+    fijarTexto("detalle-sub", "Facturas y cuotas con saldo pendiente de cobro.");
+    document.getElementById("seg-detalle").style.display = "none";
+    pintarTabla(lista, "facturas");
+  }
+
+  function renderizar(){
+    if (state.modo === "deuda" ? !state.datos : !(state.fact || state.cob)) return;
+    document.getElementById("estado-carga").style.display = "none";
+    document.getElementById("contenido").style.display = "block";
+    fijarTexto(
+      "ultima-actualizacion",
+      "Actualizado " + new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
+    );
+    const esDeuda = state.modo === "deuda";
+    document.getElementById("vista-resumen").style.display = esDeuda ? "none" : "block";
+    document.getElementById("vista-deuda").style.display = esDeuda ? "block" : "none";
+    if (esDeuda) renderizarDeuda(); else renderizarResumen();
+  }
+
+  // ===================================================================
+  // Carga
+  // ===================================================================
+  function reconstruirFiltros(){
+    state.unidad = "";
+    state.tipoFactura = "";
+    state.origenes = [];
+    state.filasVisibles = FILAS_POR_PAGINA;
+    state.grupoExpandido = null;
+    construirOpciones("unidad", "filtro-unidad", "campo-unidad", state.unidad, "Todas");
+    construirOpciones("tipoFactura", "filtro-tipo", "campo-tipo", state.tipoFactura, "Todos");
+    construirMultiselectOrigen();
+  }
+
+  function mostrarCarga(){
     document.getElementById("estado-carga").style.display = "block";
     document.getElementById("estado-carga").textContent = "Cargando datos…";
     document.getElementById("contenido").style.display = "none";
+  }
 
+  async function cargarResumen(){
+    const seq = ++state.seq;
+    mostrarCarga();
+    const mes = state.mes;
+    const empresa = state.empresa;
+    // Facturación y Cobros se piden juntos; si uno falla, el otro se muestra igual.
+    const [rf, rc] = await Promise.all([
+      pedirApi("facturacion", mes, empresa),
+      pedirApi("cobros", mes, empresa),
+    ]);
+    if (seq !== state.seq) return;
+    state.fact = rf;
+    state.cob = rc;
+    if (!rf.ok && !rc.ok){
+      document.getElementById("estado-carga").textContent =
+        "No se pudo cargar la información. Revisá la URL del backend (⚙ arriba a la derecha) y que esté activo. " +
+        "Detalle: " + rf.error;
+      return;
+    }
+    state.animarGrafico = true;
+    reconstruirFiltros();
+    renderizar();
+    precargarAnteriores(seq);
+  }
+
+  async function cargarDeuda(){
+    const seq = ++state.seq;
+    mostrarCarga();
     const desde = `${state.mes}-01`;
     const hasta = ultimoDiaDeMes(state.mes);
     const empresaParam = state.empresa ? `&empresa=${state.empresa}` : "";
-    const recurso = { facturacion: "facturacion", cobrado: "cobros", deuda: "deuda" }[state.modo];
-    const todosParam = state.modo === "deuda" && state.todosLosMeses ? "&todos=1" : "";
-    const url = `${CONFIG.backendUrl}/api/${recurso}?desde=${desde}&hasta=${hasta}${empresaParam}${todosParam}`;
-
+    const todosParam = state.todosLosMeses ? "&todos=1" : "";
+    const url = `${CONFIG.backendUrl}/api/deuda?desde=${desde}&hasta=${hasta}${empresaParam}${todosParam}`;
     try {
       const resp = await fetch(url);
       if (!resp.ok) throw new Error(`El backend respondió ${resp.status}`);
       const data = await resp.json();
-      // Normalizamos: en modo cobrado el backend devuelve "cobros" en vez de
-      // "facturas" (deuda ya usa "facturas" directo), pero es la misma forma
-      // de registro — así el resto del código funciona igual en los 3 modos.
-      state.datos = { ...data, facturas: state.modo === "cobrado" ? data.cobros || [] : data.facturas || [] };
-      state.unidad = "";
-      state.tipoFactura = "";
-      state.origenes = [];
-      state.filasVisibles = FILAS_POR_PAGINA;
-      state.grupoExpandido = null;
-      construirOpciones("unidad", "filtro-unidad", "campo-unidad", state.unidad, "Todas");
-      construirOpciones("tipoFactura", "filtro-tipo", "campo-tipo", state.tipoFactura, "Todos");
-      construirMultiselectOrigen();
+      if (seq !== state.seq) return;
+      state.datos = { ...data, facturas: data.facturas || [] };
+      reconstruirFiltros();
       renderizar();
     } catch (err){
+      if (seq !== state.seq) return;
       document.getElementById("estado-carga").textContent =
         "No se pudo cargar la información. Revisá la URL del backend (⚙ arriba a la derecha) y que esté activo. " +
         "Detalle: " + err.message;
     }
+  }
+
+  function cargarDatos(){
+    return state.modo === "deuda" ? cargarDeuda() : cargarResumen();
   }
 
   document.querySelectorAll(".modo-btn").forEach((btn) => {
@@ -1207,7 +1930,10 @@
       if (btn.dataset.modo === state.modo) return;
       state.modo = btn.dataset.modo;
       state.todosLosMeses = false;
-      document.querySelectorAll(".modo-btn").forEach((b) => b.classList.toggle("activo", b === btn));
+      document.querySelectorAll(".modo-btn").forEach((b) => {
+        b.classList.toggle("activo", b === btn);
+        b.setAttribute("aria-selected", String(b === btn));
+      });
       pintarMeses();
       cargarDatos();
     });
@@ -1222,6 +1948,7 @@
     if (valor) {
       CONFIG.backendUrl = valor.replace(/\/$/, "");
       document.getElementById("config-panel").classList.remove("abierto");
+      limpiarCache();
       cargarDatos();
     }
   });
@@ -1486,6 +2213,7 @@
       resultado.textContent = `Listo: se actualizaron ${data.periodosActualizados.map(formatearMes).join(", ")}.`;
       resultado.className = "ok";
       ufpFilasParaSubir = null;
+      limpiarCache();
       cargarDatos();
     } catch (e) {
       resultado.textContent = "Error al subir: " + e.message;
@@ -1531,6 +2259,58 @@
     state.grupoExpandido = state.grupoExpandido === clave ? null : clave;
     renderizar();
   });
+
+  // --- Pantalla "Facturado y cobrado": gráfico, detalle, actualizar ---
+  document.getElementById("btn-refrescar").addEventListener("click", () => {
+    limpiarCache();
+    cargarDatos();
+  });
+  document.getElementById("seg-detalle").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-detalle]");
+    if (!b || b.dataset.detalle === state.detalle) return;
+    state.detalle = b.dataset.detalle;
+    state.filasVisibles = FILAS_POR_PAGINA;
+    state.grupoExpandido = null;
+    renderizar();
+  });
+  document.getElementById("seg-chart").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-vista]");
+    if (!b) return;
+    state.vistaTablaGrafico = b.dataset.vista === "tabla";
+    aplicarVistaGrafico();
+  });
+  (function conectarGrafico(){
+    const cuerpo = document.getElementById("chart-body");
+    cuerpo.addEventListener("click", (e) => {
+      const g = e.target.closest(".grp");
+      if (!g || g.dataset.mes === state.mes) return;
+      state.mes = g.dataset.mes;
+      state.todosLosMeses = false;
+      pintarMeses();
+      cargarDatos();
+    });
+    cuerpo.addEventListener("mouseover", (e) => {
+      const g = e.target.closest(".grp");
+      if (g) mostrarTooltip(g);
+    });
+    cuerpo.addEventListener("mouseout", (e) => {
+      const hacia = e.relatedTarget;
+      if (!hacia || !hacia.closest || !hacia.closest(".grp")) ocultarTooltip();
+    });
+    cuerpo.addEventListener("focusin", (e) => {
+      const g = e.target.closest(".grp");
+      if (g) mostrarTooltip(g);
+    });
+    cuerpo.addEventListener("focusout", ocultarTooltip);
+    document.getElementById("chart-pie").addEventListener("click", (e) => {
+      if (e.target.id !== "btn-reintentar-meses") return;
+      state.fallidos.clear();
+      const fallaElActual = (state.fact && !state.fact.ok) || (state.cob && !state.cob.ok);
+      if (fallaElActual) { cargarDatos(); return; }
+      precargarAnteriores(state.seq);
+      actualizarGrafico();
+    });
+  })();
 
   pintarMeses();
   pintarFiltros();
