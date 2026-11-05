@@ -1402,7 +1402,8 @@
 
     const barra = (valor, clase, estado) => {
       if (valor == null) return estado === "cargando" ? `<div class="barra espera" style="height:34%"></div>` : `<div class="barra nula"></div>`;
-      return `<div class="barra ${clase}" style="height:${Math.max(0, valor / tope) * 100}%"></div>`;
+      if (!(valor > 0)) return `<div class="barra nula"></div>`; // sin plata ese mes: no se dibuja ni una rayita
+      return `<div class="barra ${clase}" style="height:${(valor / tope) * 100}%"></div>`;
     };
     const etiqueta = (valor, estado) =>
       valor == null ? (estado === "cargando" ? "…" : "—") : "$" + compacto(valor);
@@ -1966,10 +1967,24 @@
     return isNaN(n) ? 0 : n;
   }
 
+  // El export del punto de venta trae la fecha como día/mes/año, y según cómo
+  // se haya exportado puede venir con o sin ceros ("01/09/2026" o "1/9/2026"),
+  // a veces con la hora pegada. Acá solo importa el período (AAAA-MM).
   function ufpPeriodoDesdeFecha(fecha) {
-    const m = String(fecha).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (!m) return null;
-    return `${m[3]}-${m[2]}`;
+    const texto = String(fecha).trim();
+    let anio, mes;
+    let m = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s.*)?$/);
+    if (m) {
+      anio = m[3];
+      mes = Number(m[2]);
+    } else {
+      m = texto.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s].*)?$/);
+      if (!m) return null;
+      anio = m[1];
+      mes = Number(m[2]);
+    }
+    if (mes < 1 || mes > 12) return null;
+    return `${anio}-${String(mes).padStart(2, "0")}`;
   }
 
   // Comprobantes FV (venta) y NC (nota de crédito) son ventas reales. RC
