@@ -93,6 +93,46 @@
   #ufp-resultado.ok{color:var(--accent);}
   #ufp-resultado.error{color:var(--danger);}
 
+  /* Carga de "No facturado por centro": mismo panel, segundo bloque */
+  #upload-farmacia-panel .ufp-bloque{display:flex;flex-direction:column;gap:12px;}
+  #upload-farmacia-panel .ufp-bloque + .ufp-bloque{border-top:1px solid var(--border);padding-top:16px;}
+  /* Carga de "Posibles pagos ACLISA" (imagen) y su tarjeta en Deuda */
+  #upp-zona{border:2px dashed var(--border);border-radius:8px;padding:18px 14px;text-align:center;font-size:13px;color:var(--text-muted);background:var(--surface-alt);cursor:pointer;}
+  #upp-zona:hover,#upp-zona:focus-visible,#upp-zona.arrastrando{border-color:var(--accent);color:var(--text-primary);outline:none;}
+  #upp-vista{display:flex;flex-direction:column;gap:6px;}
+  #upp-previa{max-width:100%;max-height:220px;object-fit:contain;border:1px solid var(--border);border-radius:8px;background:#fff;align-self:flex-start;}
+  #upload-farmacia-panel input[type="text"]{
+    border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;
+    color:var(--text-primary);background:var(--surface-alt);
+  }
+  #upp-corte{width:150px;}
+  #upp-resultado{font-size:13px;}
+  #upp-resultado.ok{color:var(--accent);}
+  #upp-resultado.error{color:var(--danger);}
+  .pp-imagen-btn{display:block;width:100%;padding:0;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:zoom-in;overflow:hidden;}
+  .pp-imagen-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .pp-imagen-btn img{display:block;width:100%;height:auto;}
+  #pp-dialogo{border:none;padding:0;background:transparent;max-width:96vw;max-height:94vh;overflow:auto;}
+  #pp-dialogo::backdrop{background:rgba(15,23,33,.78);}
+  #pp-dialogo img{display:block;width:clamp(900px,96vw,2400px);max-width:none;height:auto;background:#fff;border-radius:8px;cursor:zoom-out;}
+  #unf-resumen{
+    background:var(--surface-alt);border-radius:8px;padding:12px 14px;font-size:13px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  #unf-pegado{
+    width:100%;box-sizing:border-box;min-height:64px;resize:vertical;border:1px solid var(--border);border-radius:8px;
+    padding:8px 10px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--text-primary);background:var(--surface-alt);
+  }
+  #unf-resumen .unf-scroll{max-height:280px;overflow:auto;}
+  #unf-resumen table{border-collapse:collapse;width:100%;font-size:12.5px;}
+  #unf-resumen th, #unf-resumen td{text-align:right;padding:3px 8px;vertical-align:top;}
+  #unf-resumen th:first-child, #unf-resumen td:first-child{text-align:left;white-space:nowrap;}
+  #unf-resumen th:last-child, #unf-resumen td:last-child{text-align:left;}
+  #unf-resumen .ufp-aviso{color:var(--danger);font-weight:600;}
+  #unf-resultado{font-size:13px;}
+  #unf-resultado.ok{color:var(--accent);}
+  #unf-resultado.error{color:var(--danger);}
+
   .meses{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;}
   .meses::-webkit-scrollbar{height:6px;}
   .mes-pill{
@@ -450,7 +490,7 @@
     <div class="topbar-right">
       <span id="ultima-actualizacion"></span>
       <button class="icon-btn" id="btn-refrescar" title="Actualizar datos" aria-label="Actualizar datos">↻</button>
-      <button class="icon-btn" id="btn-upload-farmacia" title="Cargar ventas de Farmacia" aria-label="Cargar ventas de Farmacia">📤</button>
+      <button class="icon-btn" id="btn-upload-farmacia" title="Cargar datos (ventas de Farmacia, No facturado por centro, Posibles pagos ACLISA)" aria-label="Cargar datos (ventas de Farmacia, No facturado por centro, Posibles pagos ACLISA)">📤</button>
       <button class="icon-btn" id="btn-config" title="Configurar backend" aria-label="Configurar backend">⚙</button>
     </div>
   </header>
@@ -467,21 +507,68 @@
   </div>
 
   <div id="upload-farmacia-panel">
-    <div class="ufp-header">
-      <strong>Cargar ventas de Farmacia</strong>
-      <span class="ufp-sub">Export del punto de venta (CSV, separado por ";"). Reemplaza el/los meses que aparezcan en el archivo — no afecta otros meses.</span>
-    </div>
-    <div class="ufp-fila">
-      <input id="ufp-archivo" type="file" accept=".csv,text/csv" />
-      <button id="ufp-procesar" type="button">Procesar archivo</button>
-    </div>
-    <div id="ufp-resumen" style="display:none;"></div>
-    <div class="ufp-fila" id="ufp-fila-secreto" style="display:none;">
-      <label for="ufp-secreto">Clave de sincronización</label>
-      <input id="ufp-secreto" type="password" placeholder="Se guarda solo en este navegador" />
-      <button id="ufp-confirmar" type="button">Confirmar y subir</button>
-    </div>
-    <div id="ufp-resultado"></div>
+    <section class="ufp-bloque">
+      <div class="ufp-header">
+        <strong>Cargar ventas de Farmacia</strong>
+        <span class="ufp-sub">Export del punto de venta (CSV, separado por ";"). Reemplaza el/los meses que aparezcan en el archivo — no afecta otros meses.</span>
+      </div>
+      <div class="ufp-fila">
+        <input id="ufp-archivo" type="file" accept=".csv,text/csv" />
+        <button id="ufp-procesar" type="button">Procesar archivo</button>
+      </div>
+      <div id="ufp-resumen" style="display:none;"></div>
+      <div class="ufp-fila" id="ufp-fila-secreto" style="display:none;">
+        <label for="ufp-secreto">Clave de sincronización</label>
+        <input id="ufp-secreto" type="password" placeholder="Se guarda solo en este navegador" />
+        <button id="ufp-confirmar" type="button">Confirmar y subir</button>
+      </div>
+      <div id="ufp-resultado"></div>
+    </section>
+
+    <section class="ufp-bloque" id="unf-bloque">
+      <div class="ufp-header">
+        <strong>Cargar "No facturado por centro" (CEMEI)</strong>
+        <span class="ufp-sub">Excel No_facturado_por_centro (hoja "Datos") o su CSV. Reemplaza TODO lo cargado antes, así que subí siempre el archivo completo.</span>
+      </div>
+      <textarea id="unf-pegado" rows="3" spellcheck="false" placeholder='Pegá acá las celdas copiadas del Excel: en la hoja "Datos" apretá Ctrl+A, Ctrl+C (con el encabezado) y pegá con Ctrl+V. No hace falta descargar nada.'></textarea>
+      <div class="ufp-fila">
+        <input id="unf-archivo" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt" />
+        <button id="unf-procesar" type="button">Procesar</button>
+        <span class="ufp-sub">Si pegaste texto arriba se usa eso; si no, el archivo elegido.</span>
+      </div>
+      <div id="unf-resumen" style="display:none;"></div>
+      <div class="ufp-fila" id="unf-fila-secreto" style="display:none;">
+        <label for="unf-secreto">Clave de sincronización</label>
+        <input id="unf-secreto" type="password" placeholder="Se guarda solo en este navegador" />
+        <button id="unf-confirmar" type="button">Confirmar y subir</button>
+      </div>
+      <div id="unf-resultado"></div>
+    </section>
+
+    <section class="ufp-bloque" id="upp-bloque">
+      <div class="ufp-header">
+        <strong>Cargar "Posibles pagos ACLISA" (imagen de la predicción)</strong>
+        <span class="ufp-sub">Se muestra en la pestaña Deuda de Neoform y de CEMEI. Reemplaza la imagen anterior. Es solo informativa: no cambia ningún total.</span>
+      </div>
+      <div id="upp-zona" tabindex="0" role="button" aria-label="Pegar la imagen con Ctrl+V, arrastrarla o elegir un archivo">
+        Hacé clic acá y pegá la imagen con Ctrl+V, arrastrala hasta acá, o elegí un archivo
+      </div>
+      <input id="upp-archivo" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+      <div id="upp-vista" style="display:none;">
+        <img id="upp-previa" alt="Vista previa de la imagen a subir" />
+        <span class="ufp-sub" id="upp-info"></span>
+      </div>
+      <div class="ufp-fila" id="upp-fila-corte" style="display:none;">
+        <label for="upp-corte">Fecha de corte (opcional)</label>
+        <input id="upp-corte" type="text" maxlength="40" placeholder="Ej: 11/11" />
+      </div>
+      <div class="ufp-fila" id="upp-fila-secreto" style="display:none;">
+        <label for="upp-secreto">Clave de sincronización</label>
+        <input id="upp-secreto" type="password" placeholder="Se guarda solo en este navegador" />
+        <button id="upp-confirmar" type="button">Confirmar y subir</button>
+      </div>
+      <div id="upp-resultado" role="status"></div>
+    </section>
   </div>
 
   <nav class="meses" id="meses"></nav>
@@ -638,6 +725,18 @@
           <div id="lista-deuda-top"></div>
         </article>
       </section>
+
+      <section class="card" id="tarjeta-posibles-pagos" style="display:none;margin:16px 0;">
+        <h2 class="tarjeta-titulo">Posibles pagos ACLISA</h2>
+        <p class="tarjeta-sub" id="posibles-pagos-sub"></p>
+        <button type="button" class="pp-imagen-btn" id="posibles-pagos-abrir" aria-label="Ampliar la imagen de posibles pagos">
+          <img id="posibles-pagos-img" alt="Predicción de cobro por obra social (posibles pagos ACLISA)" />
+        </button>
+        <p class="nota" id="posibles-pagos-nota"></p>
+      </section>
+      <dialog id="pp-dialogo" aria-label="Posibles pagos ACLISA, imagen ampliada">
+        <img id="pp-dialogo-img" alt="Predicción de cobro por obra social (posibles pagos ACLISA), ampliada" />
+      </dialog>
     </div>
 
     <!-- ===== Compartido ===== -->
@@ -1868,9 +1967,38 @@
   // ===================================================================
   // Pantalla "Deuda"
   // ===================================================================
+  // "Posibles pagos ACLISA": imagen de la predicción de cobro, solo en la
+  // Deuda de Neoform y de CEMEI. Es informativa, no toca ningún total.
+  function pintarPosiblesPagos(){
+    const tarjeta = document.getElementById("tarjeta-posibles-pagos");
+    const pp = state.datos && state.datos.posiblesPagos;
+    if (!(state.empresa === "NEO" || state.empresa === "CEMEI") || !pp){
+      tarjeta.style.display = "none";
+      return;
+    }
+    const img = document.getElementById("posibles-pagos-img");
+    const src = `${CONFIG.backendUrl}/api/posibles-pagos/imagen?v=${encodeURIComponent(pp.actualizado || "")}`;
+    if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+    const cargada = pp.actualizado
+      ? new Date(pp.actualizado).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })
+      : "";
+    fijarTexto(
+      "posibles-pagos-sub",
+      "Cobro esperado de cada obra social según su historial de pagos" +
+        (pp.corte ? ` · Corte ${pp.corte}` : "") +
+        (cargada ? ` · Cargada el ${cargada}` : "")
+    );
+    fijarTexto(
+      "posibles-pagos-nota",
+      pp.nota || "Estimación informativa: no se suma ni se resta de la deuda de arriba. No depende del mes elegido."
+    );
+    tarjeta.style.display = "block";
+  }
+
   function renderizarDeuda(){
     const d = state.datos || {};
     pintarBanners(d.errores || [], d.aviso);
+    pintarPosiblesPagos();
 
     const lista = aplicarFiltros(d.facturas || []);
     const totalFacturado = suma(lista, "monto");
@@ -2313,8 +2441,11 @@
       if (!resp.ok || !data.ok) {
         throw new Error(data.error || `HTTP ${resp.status}`);
       }
-      resultado.textContent = `Listo: se actualizaron ${data.periodosActualizados.map(formatearMes).join(", ")}.`;
-      resultado.className = "ok";
+      resultado.textContent = `Listo: se actualizaron ${data.periodosActualizados.map(formatearMes).join(", ")}.` +
+        (data.githubBackup === false
+          ? ` OJO: NO quedó respaldado en GitHub (${data.githubBackupError || "error desconocido"}). Si el servidor se reinicia, hay que volver a cargarlo.`
+          : "");
+      resultado.className = data.githubBackup === false ? "error" : "ok";
       ufpFilasParaSubir = null;
       limpiarCache();
       cargarDatos();
@@ -2325,6 +2456,441 @@
       boton.disabled = false;
     }
   });
+  // --- Carga de "No facturado por centro" (Excel de CEMEI) ---
+  // Igual que Farmacia: el archivo se lee entero en el navegador, se muestra un
+  // resumen para chequear antes de confirmar, y se manda al backend con la
+  // misma clave de sincronización. OJO: el backend REEMPLAZA todo el caché con
+  // lo que reciba, así que el archivo tiene que ser el Excel completo.
+  let unfFilasParaSubir = null;
+  const UNF_URL_SHEETJS = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+
+  // El lector de Excel (SheetJS) se baja recién cuando se elige un .xlsx, así
+  // la página no depende de él para nada más.
+  function unfCargarSheetJS() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise((ok, ko) => {
+      const s = document.createElement("script");
+      s.src = UNF_URL_SHEETJS;
+      s.onload = () => (window.XLSX ? ok(window.XLSX) : ko(new Error("No se pudo iniciar el lector de Excel.")));
+      s.onerror = () =>
+        ko(new Error("No se pudo descargar el lector de Excel (¿sin internet?). Probá guardando el Excel como CSV."));
+      document.head.appendChild(s);
+    });
+  }
+
+  // CSV / TSV a matriz de celdas, respetando comillas (Excel las pone cuando un
+  // campo tiene el separador adentro).
+  function unfCsvAMatriz(texto, sep) {
+    const filas = [];
+    let fila = [];
+    let campo = "";
+    let enComillas = false;
+    for (let i = 0; i < texto.length; i++) {
+      const ch = texto[i];
+      if (enComillas) {
+        if (ch === '"' && texto[i + 1] === '"') { campo += '"'; i++; }
+        else if (ch === '"') enComillas = false;
+        else campo += ch;
+      } else if (ch === '"') {
+        enComillas = true;
+      } else if (ch === sep) {
+        fila.push(campo); campo = "";
+      } else if (ch === "\n" || ch === "\r") {
+        if (ch === "\r" && texto[i + 1] === "\n") i++;
+        fila.push(campo); campo = "";
+        filas.push(fila); fila = [];
+      } else {
+        campo += ch;
+      }
+    }
+    if (campo !== "" || fila.length > 0) { fila.push(campo); filas.push(fila); }
+    return filas;
+  }
+
+  async function unfLeerArchivo(archivo) {
+    const nombre = archivo.name.toLowerCase();
+    if (nombre.endsWith(".xlsx") || nombre.endsWith(".xls")) {
+      const XLSX = await unfCargarSheetJS();
+      const libro = XLSX.read(await archivo.arrayBuffer(), { type: "array" });
+      const nombreHoja = libro.SheetNames.includes("Datos") ? "Datos" : libro.SheetNames[0];
+      const matriz = XLSX.utils.sheet_to_json(libro.Sheets[nombreHoja], { header: 1, raw: true, defval: "" });
+      return { matriz, hoja: nombreHoja, XLSX };
+    }
+    const buf = await archivo.arrayBuffer();
+    let texto = new TextDecoder("utf-8").decode(buf);
+    if (texto.includes("�")) texto = new TextDecoder("windows-1252").decode(buf);
+    texto = texto.replace(/^﻿/, "");
+    const primera = texto.split(/\r\n|\n|\r/)[0] || "";
+    const sep = primera.includes("\t") ? "\t" : ";";
+    return { matriz: unfCsvAMatriz(texto, sep), hoja: null, XLSX: null };
+  }
+
+  function unfMonto(v) {
+    if (typeof v === "number") return isFinite(v) ? v : 0;
+    const t = String(v == null ? "" : v).trim().replace(/[$\s]/g, "");
+    if (!t) return 0;
+    // Con coma es formato argentino (1.234,56). Sin coma, "8.760.823" son miles
+    // (puntos de a 3 dígitos) y "7998.32" un decimal con punto.
+    const argentino = t.includes(",") || /^\d{1,3}(\.\d{3})+$/.test(t);
+    const n = argentino ? parseFloat(t.replace(/\./g, "").replace(",", ".")) : parseFloat(t);
+    return isNaN(n) ? 0 : n;
+  }
+
+  // Período "2026-10". Acepta también 10/2026, una fecha completa, o una fecha
+  // de Excel (número de serie) si la celda quedó con formato de fecha.
+  function unfPeriodo(v, XLSX) {
+    if (typeof v === "number") {
+      const d = XLSX && XLSX.SSF ? XLSX.SSF.parse_date_code(v) : null;
+      return d ? `${d.y}-${String(d.m).padStart(2, "0")}` : null;
+    }
+    const t = String(v == null ? "" : v).trim();
+    let m = t.match(/^(\d{4})-(\d{1,2})$/);
+    if (m && Number(m[2]) >= 1 && Number(m[2]) <= 12) return `${m[1]}-${String(Number(m[2])).padStart(2, "0")}`;
+    m = t.match(/^(\d{1,2})\/(\d{4})$/);
+    if (m && Number(m[1]) >= 1 && Number(m[1]) <= 12) return `${m[2]}-${String(Number(m[1])).padStart(2, "0")}`;
+    return ufpPeriodoDesdeFecha(t);
+  }
+
+  function unfFilasDesdeMatriz(matriz, XLSX) {
+    const idxEnc = matriz.findIndex((r) => {
+      const n = r.map((c) => normalizarTexto(c));
+      return n.includes("CENTRO") && n.includes("PERIODO") && n.includes("MONTO");
+    });
+    if (idxEnc === -1) {
+      throw new Error('No encontré las columnas "Centro", "Periodo" y "Monto" en la primera hoja del archivo.');
+    }
+    const enc = matriz[idxEnc].map((c) => normalizarTexto(c));
+    const col = {
+      centro: enc.indexOf("CENTRO"),
+      periodo: enc.indexOf("PERIODO"),
+      obraSocial: enc.indexOf("OBRA SOCIAL"),
+      nombre: enc.indexOf("NOMBRE"),
+      monto: enc.indexOf("MONTO"),
+      cantidad: enc.indexOf("CANTIDAD"),
+      codigo: enc.indexOf("CODIGO"),
+      observaciones: enc.indexOf("OBSERVACIONES"),
+    };
+    const celda = (r, i) => (i >= 0 && r[i] != null ? r[i] : "");
+    const texto = (r, i) => String(celda(r, i)).trim();
+    const filas = [];
+    let sinPeriodo = 0;
+    let leidas = 0;
+    for (let i = idxEnc + 1; i < matriz.length; i++) {
+      const r = matriz[i];
+      if (r.every((c) => String(c == null ? "" : c).trim() === "")) continue; // fila vacía
+      leidas++;
+      const periodo = unfPeriodo(celda(r, col.periodo), XLSX);
+      if (!periodo) { sinPeriodo++; continue; }
+      filas.push({
+        centro: texto(r, col.centro) || "Sin centro",
+        periodo,
+        obraSocial: texto(r, col.obraSocial),
+        nombre: texto(r, col.nombre),
+        monto: unfMonto(celda(r, col.monto)),
+        cantidad: parseInt(texto(r, col.cantidad), 10) || 1,
+        codigo: texto(r, col.codigo),
+        observaciones: texto(r, col.observaciones),
+      });
+    }
+    return { filas, leidas, sinPeriodo };
+  }
+
+  function unfRenderResumen(parseo, hoja, servidor) {
+    const porPeriodo = new Map();
+    for (const f of parseo.filas) {
+      if (!porPeriodo.has(f.periodo)) porPeriodo.set(f.periodo, { filas: 0, monto: 0, centros: new Map() });
+      const p = porPeriodo.get(f.periodo);
+      p.filas++;
+      p.monto += f.monto;
+      p.centros.set(f.centro, (p.centros.get(f.centro) || 0) + f.monto);
+    }
+    const periodos = Array.from(porPeriodo.keys()).sort();
+    const cuerpo = periodos
+      .map((p) => {
+        const r = porPeriodo.get(p);
+        const centros = Array.from(r.centros.entries())
+          .sort((a, b) => b[1] - a[1])
+          .map(([c, m]) => `${escaparHtml(c)}: ${money(m)}`)
+          .join(" · ");
+        return `<tr><td>${formatearMes(p)}</td><td>${r.filas}</td><td>${money(r.monto)}</td><td>${centros}</td></tr>`;
+      })
+      .join("");
+    const total = parseo.filas.reduce((a, f) => a + f.monto, 0);
+    const avisoDescartes =
+      parseo.sinPeriodo > 0
+        ? `<div class="ufp-aviso">${parseo.sinPeriodo} fila(s) sin período reconocible (AAAA-MM) — se ignoraron.</div>`
+        : "";
+    const avisoServidor = servidor
+      ? `<div>Hoy el servidor tiene <b>${servidor.cantidadFilas}</b> filas${servidor.periodos && servidor.periodos.length ? ` (hasta ${formatearMes(servidor.periodos[servidor.periodos.length - 1])})` : ""}. Al confirmar se reemplazan por estas.</div>`
+        : "";
+    document.getElementById("unf-resumen").innerHTML = `
+      <div class="unf-scroll">
+        <table>
+          <thead><tr><th>Período</th><th>Filas</th><th>Monto sin facturar</th><th>Por centro</th></tr></thead>
+          <tbody>${cuerpo}</tbody>
+        </table>
+      </div>
+      <div><b>Total: ${parseo.filas.length} filas · ${money(total)}</b>${hoja ? ` · hoja "${escaparHtml(hoja)}"` : ""}</div>
+      ${avisoServidor}
+      ${avisoDescartes}
+    `;
+    document.getElementById("unf-resumen").style.display = "flex";
+  }
+
+  document.getElementById("unf-procesar").addEventListener("click", async () => {
+    const input = document.getElementById("unf-archivo");
+    const resultado = document.getElementById("unf-resultado");
+    resultado.textContent = "";
+    resultado.className = "";
+    const pegado = document.getElementById("unf-pegado").value;
+    const hayPegado = pegado.trim().length > 0;
+    if (!hayPegado && (!input.files || input.files.length === 0)) {
+      resultado.textContent = "Pegá las celdas copiadas del Excel o elegí un archivo.";
+      resultado.className = "error";
+      return;
+    }
+    try {
+      // Texto pegado desde Excel: columnas separadas por tab, comillas si una celda tiene saltos de línea.
+      const lectura = hayPegado
+        ? { matriz: unfCsvAMatriz(pegado, "\t"), hoja: "texto pegado", XLSX: null }
+        : await unfLeerArchivo(input.files[0]);
+      const parseo = unfFilasDesdeMatriz(lectura.matriz, lectura.XLSX);
+      if (parseo.filas.length === 0) {
+        throw new Error("No se encontró ninguna fila con un período válido (AAAA-MM).");
+      }
+      let servidor = null;
+      try {
+        const r = await fetch(`${CONFIG.backendUrl}/api/ingest/no-facturado-sig`);
+        if (r.ok) servidor = await r.json();
+      } catch (e) { /* es solo informativo */ }
+      unfFilasParaSubir = parseo.filas;
+      unfRenderResumen(parseo, lectura.hoja, servidor);
+      document.getElementById("unf-secreto").value = localStorage.getItem("ufpSecretoFarmacia") || "";
+      document.getElementById("unf-fila-secreto").style.display = "flex";
+    } catch (e) {
+      unfFilasParaSubir = null;
+      document.getElementById("unf-resumen").style.display = "none";
+      document.getElementById("unf-fila-secreto").style.display = "none";
+      resultado.textContent = "No se pudo leer el archivo: " + e.message;
+      resultado.className = "error";
+    }
+  });
+
+  document.getElementById("unf-confirmar").addEventListener("click", async () => {
+    const resultado = document.getElementById("unf-resultado");
+    const boton = document.getElementById("unf-confirmar");
+    const secreto = document.getElementById("unf-secreto").value.trim();
+    if (!unfFilasParaSubir) {
+      resultado.textContent = "Primero procesá un archivo.";
+      resultado.className = "error";
+      return;
+    }
+    if (!secreto) {
+      resultado.textContent = "Falta la clave de sincronización.";
+      resultado.className = "error";
+      return;
+    }
+    localStorage.setItem("ufpSecretoFarmacia", secreto); // la misma clave que Farmacia
+    boton.disabled = true;
+    resultado.textContent = "Subiendo...";
+    resultado.className = "";
+    try {
+      const resp = await fetch(`${CONFIG.backendUrl}/api/ingest/no-facturado-sig`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Sync-Secret": secreto },
+        body: JSON.stringify({ filas: unfFilasParaSubir }),
+      });
+      const data = await resp.json();
+      if (!resp.ok || !data.ok) {
+        throw new Error(data.error || `HTTP ${resp.status}`);
+      }
+      resultado.textContent = `Listo: el servidor quedó con ${data.cantidadFilas} filas.` +
+        (data.githubBackup === false
+          ? ` OJO: NO quedó respaldado en GitHub (${data.githubBackupError || "error desconocido"}). Si el servidor se reinicia, hay que volver a cargarlo.`
+          : "");
+      resultado.className = data.githubBackup === false ? "error" : "ok";
+      unfFilasParaSubir = null;
+      limpiarCache();
+      cargarDatos();
+    } catch (e) {
+      resultado.textContent = "Error al subir: " + e.message;
+      resultado.className = "error";
+    } finally {
+      boton.disabled = false;
+    }
+  });
+
+  // --- Posibles pagos ACLISA: ampliar la imagen en la tarjeta de Deuda ---
+  (function conectarAmpliarPosiblesPagos(){
+    const dialogo = document.getElementById("pp-dialogo");
+    document.getElementById("posibles-pagos-abrir").addEventListener("click", () => {
+      document.getElementById("pp-dialogo-img").setAttribute("src", document.getElementById("posibles-pagos-img").getAttribute("src"));
+      if (typeof dialogo.showModal === "function") dialogo.showModal();
+      else window.open(document.getElementById("posibles-pagos-img").getAttribute("src"), "_blank", "noopener");
+    });
+    dialogo.addEventListener("click", () => dialogo.close()); // clic en cualquier lado (imagen o fondo) cierra; Esc también
+  })();
+
+  // --- Carga de la imagen "Posibles pagos ACLISA" (panel 📤) ---
+  // La imagen se lee en el navegador; si es muy pesada o enorme se reduce
+  // antes de subirla (el servidor acepta hasta 6 MB, pero 2 MB sobra para
+  // que se lea bien). Se puede pegar (Ctrl+V), arrastrar o elegir archivo.
+  let uppImagenParaSubir = null; // { dataUrl, bytes, ancho, alto, reducida }
+  const UPP_TIPOS = ["image/png", "image/jpeg", "image/webp"];
+  const UPP_MAX_BYTES = 2 * 1024 * 1024;
+  const UPP_MAX_ANCHO = 2400;
+
+  function uppLeerComoDataUrl(archivo){
+    return new Promise((ok, ko) => {
+      const lector = new FileReader();
+      lector.onload = () => ok(lector.result);
+      lector.onerror = () => ko(new Error("No se pudo leer el archivo."));
+      lector.readAsDataURL(archivo);
+    });
+  }
+  function uppCargarImagen(dataUrl){
+    return new Promise((ok, ko) => {
+      const img = new Image();
+      img.onload = () => ok(img);
+      img.onerror = () => ko(new Error("El archivo no es una imagen válida."));
+      img.src = dataUrl;
+    });
+  }
+  function uppBytesDeDataUrl(dataUrl){
+    const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+    return Math.floor(base64.length * 3 / 4) - (base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0);
+  }
+
+  async function uppPrepararImagen(archivo){
+    if (!UPP_TIPOS.includes(archivo.type)) {
+      throw new Error("Tiene que ser una imagen PNG, JPG o WEBP.");
+    }
+    let dataUrl = await uppLeerComoDataUrl(archivo);
+    const img = await uppCargarImagen(dataUrl);
+    let bytes = archivo.size;
+    let reducida = false;
+    if (bytes > UPP_MAX_BYTES || img.naturalWidth > UPP_MAX_ANCHO) {
+      const escala = Math.min(1, UPP_MAX_ANCHO / img.naturalWidth);
+      const lienzo = document.createElement("canvas");
+      lienzo.width = Math.round(img.naturalWidth * escala);
+      lienzo.height = Math.round(img.naturalHeight * escala);
+      const ctx = lienzo.getContext("2d");
+      ctx.fillStyle = "#fff"; // el JPEG no tiene transparencia
+      ctx.fillRect(0, 0, lienzo.width, lienzo.height);
+      ctx.drawImage(img, 0, 0, lienzo.width, lienzo.height);
+      dataUrl = lienzo.toDataURL("image/jpeg", 0.9);
+      bytes = uppBytesDeDataUrl(dataUrl);
+      reducida = true;
+    }
+    return { dataUrl, bytes, ancho: img.naturalWidth, alto: img.naturalHeight, reducida };
+  }
+
+  async function uppAceptarArchivo(archivo){
+    const resultado = document.getElementById("upp-resultado");
+    resultado.textContent = "";
+    resultado.className = "";
+    try {
+      const imagen = await uppPrepararImagen(archivo);
+      uppImagenParaSubir = imagen;
+      document.getElementById("upp-previa").setAttribute("src", imagen.dataUrl);
+      document.getElementById("upp-info").textContent =
+        `${imagen.ancho}×${imagen.alto} px · ${Math.round(imagen.bytes / 1024)} KB` +
+        (imagen.reducida ? " (se redujo para subirla más liviana)" : "");
+      document.getElementById("upp-vista").style.display = "flex";
+      document.getElementById("upp-fila-corte").style.display = "flex";
+      document.getElementById("upp-secreto").value = localStorage.getItem("ufpSecretoFarmacia") || "";
+      document.getElementById("upp-fila-secreto").style.display = "flex";
+    } catch (e) {
+      uppImagenParaSubir = null;
+      document.getElementById("upp-vista").style.display = "none";
+      document.getElementById("upp-fila-corte").style.display = "none";
+      document.getElementById("upp-fila-secreto").style.display = "none";
+      resultado.textContent = "No se pudo usar la imagen: " + e.message;
+      resultado.className = "error";
+    }
+  }
+
+  (function conectarCargaPosiblesPagos(){
+    const zona = document.getElementById("upp-zona");
+    const input = document.getElementById("upp-archivo");
+    zona.addEventListener("click", () => { zona.focus(); input.click(); });
+    zona.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); }
+    });
+    input.addEventListener("change", () => {
+      if (input.files && input.files[0]) uppAceptarArchivo(input.files[0]);
+      input.value = "";
+    });
+    zona.addEventListener("dragover", (e) => { e.preventDefault(); zona.classList.add("arrastrando"); });
+    zona.addEventListener("dragleave", () => zona.classList.remove("arrastrando"));
+    zona.addEventListener("drop", (e) => {
+      e.preventDefault();
+      zona.classList.remove("arrastrando");
+      const archivo = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (archivo) uppAceptarArchivo(archivo);
+    });
+    // Ctrl+V: solo si el foco está dentro de este bloque, para no pisar el
+    // pegado de texto en el bloque de "No facturado por centro".
+    document.addEventListener("paste", (e) => {
+      if (!document.getElementById("upp-bloque").contains(document.activeElement)) return;
+      const archivos = Array.from((e.clipboardData && e.clipboardData.files) || []).filter((f) => f.type.startsWith("image/"));
+      if (archivos.length === 0) return;
+      e.preventDefault();
+      uppAceptarArchivo(archivos[0]);
+    });
+  })();
+
+  document.getElementById("upp-confirmar").addEventListener("click", async () => {
+    const resultado = document.getElementById("upp-resultado");
+    const boton = document.getElementById("upp-confirmar");
+    const secreto = document.getElementById("upp-secreto").value.trim();
+    if (!uppImagenParaSubir) {
+      resultado.textContent = "Primero pegá o elegí la imagen.";
+      resultado.className = "error";
+      return;
+    }
+    if (!secreto) {
+      resultado.textContent = "Falta la clave de sincronización.";
+      resultado.className = "error";
+      return;
+    }
+    localStorage.setItem("ufpSecretoFarmacia", secreto); // la misma clave que los otros bloques
+    boton.disabled = true;
+    resultado.textContent = "Subiendo...";
+    resultado.className = "";
+    try {
+      const resp = await fetch(`${CONFIG.backendUrl}/api/ingest/posibles-pagos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Sync-Secret": secreto },
+        body: JSON.stringify({
+          imagen: uppImagenParaSubir.dataUrl,
+          corte: document.getElementById("upp-corte").value.trim(),
+        }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || !data.ok) {
+        throw new Error(data.error || `HTTP ${resp.status}`);
+      }
+      resultado.textContent = "Listo: la imagen ya se ve en la Deuda de Neoform y de CEMEI." +
+        (data.githubBackup === false
+          ? ` OJO: NO quedó respaldada en GitHub (${data.githubBackupError || "error desconocido"}). Si el servidor se reinicia, hay que volver a cargarla.`
+          : "");
+      resultado.className = data.githubBackup === false ? "error" : "ok";
+      uppImagenParaSubir = null;
+      document.getElementById("upp-vista").style.display = "none";
+      document.getElementById("upp-fila-corte").style.display = "none";
+      document.getElementById("upp-fila-secreto").style.display = "none";
+      document.getElementById("upp-corte").value = "";
+      limpiarCache();
+      cargarDatos();
+    } catch (e) {
+      resultado.textContent = "Error al subir: " + e.message;
+      resultado.className = "error";
+    } finally {
+      boton.disabled = false;
+    }
+  });
+
   document.getElementById("filtro-unidad").addEventListener("change", (e) => {
     state.unidad = e.target.value;
     state.filasVisibles = FILAS_POR_PAGINA;
