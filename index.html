@@ -115,6 +115,20 @@
   #pp-dialogo{border:none;padding:0;background:transparent;max-width:96vw;max-height:94vh;overflow:auto;}
   #pp-dialogo::backdrop{background:rgba(15,23,33,.78);}
   #pp-dialogo img{display:block;width:clamp(900px,96vw,2400px);max-width:none;height:auto;background:#fff;border-radius:8px;cursor:zoom-out;}
+  /* Carga del "Resumen de deuda" de ACLISA (PDF) */
+  #uda-zona{border:2px dashed var(--border);border-radius:8px;padding:18px 14px;text-align:center;font-size:13px;color:var(--text-muted);background:var(--surface-alt);cursor:pointer;}
+  #uda-zona:hover,#uda-zona:focus-visible,#uda-zona.arrastrando{border-color:var(--accent);color:var(--text-primary);outline:none;}
+  #uda-resumen{background:var(--surface-alt);border-radius:8px;padding:12px 14px;font-size:13px;display:flex;flex-direction:column;gap:6px;}
+  #uda-resumen .uda-scroll{max-height:240px;overflow:auto;}
+  #uda-resumen table{border-collapse:collapse;width:100%;font-size:12.5px;}
+  #uda-resumen th, #uda-resumen td{text-align:right;padding:3px 6px;}
+  #uda-resumen th:first-child, #uda-resumen td:first-child{text-align:left;white-space:nowrap;}
+  #uda-resumen .uda-ok{color:var(--accent);font-weight:600;}
+  #uda-resumen .uda-mal{color:var(--danger);font-weight:600;}
+  #upload-farmacia-panel select{border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--text-primary);background:var(--surface-alt);}
+  #uda-resultado{font-size:13px;}
+  #uda-resultado.ok{color:var(--accent);}
+  #uda-resultado.error{color:var(--danger);}
   #unf-resumen{
     background:var(--surface-alt);border-radius:8px;padding:12px 14px;font-size:13px;
     display:flex;flex-direction:column;gap:6px;
@@ -490,7 +504,7 @@
     <div class="topbar-right">
       <span id="ultima-actualizacion"></span>
       <button class="icon-btn" id="btn-refrescar" title="Actualizar datos" aria-label="Actualizar datos">↻</button>
-      <button class="icon-btn" id="btn-upload-farmacia" title="Cargar datos (ventas de Farmacia, No facturado por centro, Posibles pagos ACLISA)" aria-label="Cargar datos (ventas de Farmacia, No facturado por centro, Posibles pagos ACLISA)">📤</button>
+      <button class="icon-btn" id="btn-upload-farmacia" title="Cargar datos (ventas de Farmacia, No facturado por centro, Posibles pagos ACLISA, Deuda según ACLISA)" aria-label="Cargar datos (ventas de Farmacia, No facturado por centro, Posibles pagos ACLISA, Deuda según ACLISA)">📤</button>
       <button class="icon-btn" id="btn-config" title="Configurar backend" aria-label="Configurar backend">⚙</button>
     </div>
   </header>
@@ -568,6 +582,31 @@
         <button id="upp-confirmar" type="button">Confirmar y subir</button>
       </div>
       <div id="upp-resultado" role="status"></div>
+    </section>
+
+    <section class="ufp-bloque" id="uda-bloque">
+      <div class="ufp-header">
+        <strong>Cargar "Resumen de deuda" de ACLISA (PDF)</strong>
+        <span class="ufp-sub">La Deuda de Neoform y de CEMEI sale de este resumen en vez de las facturas del sistema. Reemplaza el resumen anterior de esa empresa, así que subí siempre el PDF completo y más reciente.</span>
+      </div>
+      <div id="uda-zona" tabindex="0" role="button" aria-label="Elegir o arrastrar el PDF del resumen de deuda">
+        Hacé clic acá o arrastrá el PDF "Resumen de deuda" de ACLISA
+      </div>
+      <input id="uda-archivo" type="file" accept="application/pdf,.pdf" hidden />
+      <div id="uda-resumen" style="display:none;"></div>
+      <div class="ufp-fila" id="uda-fila-empresa" style="display:none;">
+        <label for="uda-empresa">Empresa</label>
+        <select id="uda-empresa">
+          <option value="NEO">Neoform</option>
+          <option value="CEMEI">CEMEI</option>
+        </select>
+      </div>
+      <div class="ufp-fila" id="uda-fila-secreto" style="display:none;">
+        <label for="uda-secreto">Clave de sincronización</label>
+        <input id="uda-secreto" type="password" placeholder="Se guarda solo en este navegador" />
+        <button id="uda-confirmar" type="button">Confirmar y subir</button>
+      </div>
+      <div id="uda-resultado" role="status"></div>
     </section>
   </div>
 
@@ -929,12 +968,12 @@
           <td>${chevron}${f.cliente}${!state.empresa ? `<div class="subtexto">${f.empresa}</div>` : ""}</td>
           <td>${f.unidad || f.tipoFactura || "-"}</td>
           <td title="${escaparHtml(f.concepto)}">${simplificarConcepto(f.concepto)}${f.comprobante ? `<div class="subtexto">${escaparHtml(f.comprobante)}</div>` : ""}</td>
-          <td>${f.origen || "-"}${f.empresa === NOMBRES_EMPRESA.NEO && !f.esAgregado ? `<div class="subtexto">${tipoAtencionNeo(f)}</div>` : ""}</td>
+          <td>${f.origen || "-"}${f.empresa === NOMBRES_EMPRESA.NEO && !f.esAgregado && f.fuente !== "ACLISA" ? `<div class="subtexto">${tipoAtencionNeo(f)}</div>` : ""}</td>
           <td class="num mono">${money(f.monto)}</td>
           <td class="num mono">${money(f.cobrado)}${f.debitos > 0 ? `<div class="subtexto" style="color:var(--danger);">Débito: ${money(f.debitos)}</div>` : ""}</td>
           <td class="num mono">${money(f.saldo)}</td>
           <td class="num mono">${f.porcentajeCobrado}%</td>
-          <td class="num mono">${f.diasVencido || 0}</td>
+          <td class="num mono">${f.fuente === "ACLISA" ? "-" : (f.diasVencido || 0)}</td>
           <td>${badgeEstado(f.estado)}</td>
         </tr>`;
   }
@@ -2009,8 +2048,10 @@
     fijarTexto("hero-label", `Adeudado · ${periodoTexto}`);
     document.getElementById("hero-meter-fill").style.width = Math.max(0, Math.min(100, porcentajeDeuda)) + "%";
     fijarTexto("hero-cifra", money(totalSaldo));
+    const todasAclisa = lista.length > 0 && lista.every((f) => f.fuente === "ACLISA");
+    const hayAclisa = lista.some((f) => f.fuente === "ACLISA");
     document.getElementById("hero-sub").innerHTML =
-      `<b>${lista.length}</b> facturas · <b>${porcentajeDeuda}%</b> del facturado sigue sin cobrarse · ${descripcionFiltros()}`;
+      `<b>${lista.length}</b> ${todasAclisa ? "rendiciones" : "facturas"} · <b>${porcentajeDeuda}%</b> de lo ${todasAclisa ? "rendido" : "facturado"} sigue sin cobrarse · ${descripcionFiltros()}`;
 
     const porDeudorMap = new Map();
     lista.forEach((f) => {
@@ -2050,9 +2091,16 @@
     pintarBarrasCategorias(titulo, Array.from(mapa.values()), [{ campo: "saldo", clase: "deuda", etiqueta: "Deuda" }]);
 
     fijarTexto("detalle-titulo", "Detalle de la deuda");
-    fijarTexto("detalle-sub", "Facturas y cuotas con saldo pendiente de cobro.");
+    fijarTexto(
+      "detalle-sub",
+      todasAclisa
+        ? "Rendiciones de ACLISA con saldo pendiente de cobro."
+        : hayAclisa
+          ? "Rendiciones de ACLISA y facturas con saldo pendiente de cobro."
+          : "Facturas y cuotas con saldo pendiente de cobro."
+    );
     document.getElementById("seg-detalle").style.display = "none";
-    pintarTabla(lista, "facturas");
+    pintarTabla(lista, hayAclisa ? "rendiciones" : "facturas");
   }
 
   function renderizar(){
@@ -2881,6 +2929,309 @@
       document.getElementById("upp-fila-corte").style.display = "none";
       document.getElementById("upp-fila-secreto").style.display = "none";
       document.getElementById("upp-corte").value = "";
+      limpiarCache();
+      cargarDatos();
+    } catch (e) {
+      resultado.textContent = "Error al subir: " + e.message;
+      resultado.className = "error";
+    } finally {
+      boton.disabled = false;
+    }
+  });
+
+
+  // ===================================================================
+  // Carga del "Resumen de deuda" de ACLISA (PDF)
+  // ===================================================================
+  // El PDF se lee en este navegador (pdf.js) y al servidor viaja solo la tabla
+  // de rendiciones. Antes de ofrecer la subida se controla que las sumas de las
+  // filas coincidan con el TOTAL que trae el propio PDF: si no coinciden, se
+  // leyó mal alguna fila y no se deja subir.
+// Lector del "Resumen de deuda" de ACLISA. Mismo código que va en el index.html.
+// recibe los items de texto de cada página (pdf.js getTextContent().items) y devuelve { entidad, corte, totales, filas, ... }
+function aclisaMontoANumero(t) {
+  const n = Number(String(t).replace(/\$/g, "").replace(/\s/g, "").replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(n) ? n : NaN;
+}
+function aclisaAgruparLineas(items) {
+  // une los trozos de texto que están a la misma altura (±3 pt) y los ordena de izquierda a derecha
+  const trozos = items
+    .filter((it) => it.str && it.str.trim() !== "")
+    .map((it) => ({ x: it.transform[4], y: it.transform[5], t: it.str }));
+  trozos.sort((a, b) => b.y - a.y || a.x - b.x);
+  const lineas = [];
+  for (const tr of trozos) {
+    const ult = lineas[lineas.length - 1];
+    if (ult && Math.abs(ult.y - tr.y) <= 3) ult.trozos.push(tr);
+    else lineas.push({ y: tr.y, trozos: [tr] });
+  }
+  return lineas.map((l) => l.trozos.sort((a, b) => a.x - b.x).map((t) => t.t.trim()).join(" ").replace(/\s+/g, " ").trim());
+}
+const ACLISA_RE_FILA = /^(\d{2}-\d{2}-\d{4}) (\d{1,2}-\d{4}) (\d{6,}) (.+?) (\$ ?-?[\d.]+,\d{2}) (\$ ?-?[\d.]+,\d{2}) (\$ ?-?[\d.]+,\d{2})$/;
+function aclisaInterpretarPaginas(paginas) {
+  const filas = [];
+  const sinReconocer = [];
+  let entidad = "";
+  let corte = null;
+  const montosTotal = [];
+  let enTotal = false;
+  let hayEncabezado = false;
+  for (const items of paginas) {
+    const lineas = aclisaAgruparLineas(items);
+    for (let i = 0; i < lineas.length; i++) {
+      const linea = lineas[i];
+      if (/RESUMEN DE DEUDA/i.test(linea)) {
+        hayEncabezado = true;
+        const sig = lineas[i + 1] || "";
+        if (!entidad && sig && !/^\$|^Fecha|^\d/.test(sig)) entidad = sig;
+        continue;
+      }
+      const m = linea.match(ACLISA_RE_FILA);
+      if (m) {
+        const [, fecha, periodo, rend, os, f, p, d] = m;
+        const [dd, mm, aa] = fecha.split("-");
+        const [pm, pa] = periodo.split("-");
+        const fila = {
+          fecha: `${aa}-${mm}-${dd}`,
+          periodo: `${pa}-${String(pm).padStart(2, "0")}`,
+          rendicion: rend,
+          obraSocial: os.replace(/\s*\(\*\)\s*$/, "").trim(),
+          complementaria: /\(\*\)\s*$/.test(os),
+          facturado: aclisaMontoANumero(f),
+          pagado: aclisaMontoANumero(p),
+          deuda: aclisaMontoANumero(d),
+        };
+        if ([fila.facturado, fila.pagado, fila.deuda].some((n) => !Number.isFinite(n))) sinReconocer.push(linea);
+        else filas.push(fila);
+        continue;
+      }
+      const c = linea.match(/Se extiende el presente certificado al d[ií]a (\d{2})-(\d{2})-(\d{4})/i);
+      if (c) { corte = `${c[3]}-${c[2]}-${c[1]}`; continue; }
+      if (/^TOTAL\b/i.test(linea)) enTotal = true;
+      if (enTotal) {
+        const ms = linea.match(/\$ ?-?[\d.]+,\d{2}/g);
+        if (ms) ms.forEach((x) => montosTotal.push(aclisaMontoANumero(x)));
+        continue;
+      }
+      if (/^\d{2}-\d{2}-\d{4} \d{1,2}-\d{4} \d/.test(linea)) sinReconocer.push(linea);
+    }
+  }
+  if (!corte) {
+    // alternativa: "Hora y Fecha 17:53 | 03-11-2026 | Página N" del pie
+    for (const items of paginas) {
+      for (const l of aclisaAgruparLineas(items)) {
+        const c = l.match(/Hora y Fecha \d{1,2}:\d{2} \| (\d{2})-(\d{2})-(\d{4})/);
+        if (c) { corte = `${c[3]}-${c[2]}-${c[1]}`; break; }
+      }
+      if (corte) break;
+    }
+  }
+  const totalesPdf = montosTotal.length >= 3 ? { facturado: montosTotal[0], pagado: montosTotal[1], deuda: montosTotal[2] } : null;
+  return { hayEncabezado, entidad, corte, totalesPdf, filas, sinReconocer };
+}
+
+  const UDA_URL_PDFJS = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js";
+  const UDA_URL_PDFJS_WORKER = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+  const UDA_MIN_DEUDA = 10; // mismo criterio que el servidor: menos de $10 es redondeo
+  let udaParaSubir = null;
+
+  function udaCargarPdfJs(){
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    return new Promise((ok, ko) => {
+      const s = document.createElement("script");
+      s.src = UDA_URL_PDFJS;
+      s.onload = () => {
+        if (!window.pdfjsLib) return ko(new Error("No se pudo iniciar el lector de PDF."));
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = UDA_URL_PDFJS_WORKER;
+        ok(window.pdfjsLib);
+      };
+      s.onerror = () => ko(new Error("No se pudo descargar el lector de PDF (¿sin internet?)."));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function udaLeerPdf(archivo){
+    const pdfjs = await udaCargarPdfJs();
+    const doc = await pdfjs.getDocument({ data: new Uint8Array(await archivo.arrayBuffer()) }).promise;
+    const paginas = [];
+    for (let i = 1; i <= doc.numPages; i++){
+      const pagina = await doc.getPage(i);
+      paginas.push((await pagina.getTextContent()).items);
+    }
+    return { ...aclisaInterpretarPaginas(paginas), paginas: doc.numPages };
+  }
+
+  function udaRedondear(n){ return Math.round(n * 100) / 100; }
+  function udaFecha(iso){ const [a, m, d] = String(iso || "").split("-"); return d ? `${d}/${m}/${a}` : "-"; }
+
+  function udaRenderResumen(r, servidor, empresa){
+    const sumar = (k) => udaRedondear(r.filas.reduce((a, f) => a + f[k], 0));
+    const sumas = { facturado: sumar("facturado"), pagado: sumar("pagado"), deuda: sumar("deuda") };
+    const conDeuda = r.filas.filter((f) => f.deuda >= UDA_MIN_DEUDA);
+    const problemas = [];
+    if (!r.hayEncabezado) problemas.push('El archivo no parece un "Resumen de deuda" de ACLISA.');
+    if (r.filas.length === 0) problemas.push("No se encontró ninguna rendición.");
+    if (r.sinReconocer.length > 0) problemas.push(`${r.sinReconocer.length} línea(s) parecen rendiciones pero no se pudieron leer.`);
+    if (!r.corte) problemas.push("No se encontró la fecha del resumen.");
+    if (!r.totalesPdf) problemas.push("No se encontró el TOTAL del PDF, así que no se puede verificar que se leyó completo.");
+    const dif = r.totalesPdf
+      ? ["facturado", "pagado", "deuda"].filter((k) => Math.abs(r.totalesPdf[k] - sumas[k]) > 1)
+      : [];
+    if (dif.length > 0) problemas.push("La suma de las filas no coincide con el TOTAL del PDF (" + dif.join(", ") + ").");
+    const repetidas = r.filas.length - new Set(r.filas.map((f) => f.rendicion)).size;
+    if (repetidas > 0) problemas.push(`${repetidas} rendición(es) aparecen repetidas.`);
+
+    const porPeriodo = new Map();
+    conDeuda.forEach((f) => {
+      const p = porPeriodo.get(f.periodo) || { n: 0, deuda: 0 };
+      p.n++; p.deuda += f.deuda;
+      porPeriodo.set(f.periodo, p);
+    });
+    const cuerpo = Array.from(porPeriodo.keys()).sort()
+      .map((per) => `<tr><td>${formatearMes(per)}</td><td>${porPeriodo.get(per).n}</td><td>${money(porPeriodo.get(per).deuda)}</td></tr>`)
+      .join("");
+    const control = r.totalesPdf
+      ? (dif.length === 0
+          ? `<div class="uda-ok">✔ Control: las ${r.filas.length} filas suman exactamente el TOTAL del PDF (deuda ${money(r.totalesPdf.deuda)}).</div>`
+          : `<div class="uda-mal">✖ Control: el PDF dice deuda ${money(r.totalesPdf.deuda)} y las filas suman ${money(sumas.deuda)}.</div>`)
+      : "";
+    const avisoServidor = servidor && servidor.empresas && servidor.empresas[empresa]
+      ? `<div>Hoy el servidor tiene el resumen con corte al <b>${udaFecha(servidor.empresas[empresa].corte)}</b> (${servidor.empresas[empresa].rendiciones} rendiciones). Al confirmar se reemplaza por este.${
+          servidor.empresas[empresa].corte > r.corte ? ' <span class="uda-mal">OJO: el que está cargado es más nuevo que este PDF.</span>' : ""}</div>`
+      : "";
+    const avisoProblemas = problemas.length
+      ? `<div class="uda-mal">${problemas.map(escaparHtml).join("<br>")}</div>`
+      : "";
+    document.getElementById("uda-resumen").innerHTML = `
+      <div><b>${escaparHtml(r.entidad || "Entidad sin nombre")}</b> · resumen al <b>${udaFecha(r.corte)}</b> · ${r.paginas} páginas · ${r.filas.length} rendiciones</div>
+      <div><b>${conDeuda.length}</b> rendiciones con deuda · <b>${money(conDeuda.reduce((a, f) => a + f.deuda, 0))}</b>${
+        r.filas.length > conDeuda.length ? ` <span class="ufp-sub">(se omiten los saldos menores a ${money(UDA_MIN_DEUDA)}: redondeos)</span>` : ""}</div>
+      ${cuerpo ? `<div class="uda-scroll"><table><thead><tr><th>Período</th><th>Cant.</th><th>Deuda</th></tr></thead><tbody>${cuerpo}</tbody></table></div>` : ""}
+      ${control}
+      ${avisoServidor}
+      ${avisoProblemas}`;
+    document.getElementById("uda-resumen").style.display = "flex";
+    return { problemas, sumas };
+  }
+
+  function udaEmpresaDetectada(entidad){
+    const n = normalizarTexto(entidad);
+    if (n.includes("CEMEI")) return "CEMEI";
+    if (n.includes("NEO")) return "NEO";
+    return "";
+  }
+
+  async function udaAceptarArchivo(archivo){
+    const resultado = document.getElementById("uda-resultado");
+    resultado.textContent = "Leyendo el PDF…";
+    resultado.className = "";
+    udaParaSubir = null;
+    document.getElementById("uda-fila-secreto").style.display = "none";
+    document.getElementById("uda-fila-empresa").style.display = "none";
+    document.getElementById("uda-resumen").style.display = "none";
+    if (!(archivo.type === "application/pdf" || /\.pdf$/i.test(archivo.name))){
+      resultado.textContent = "Ese archivo no es un PDF. Elegí el PDF \"Resumen de deuda\" de ACLISA.";
+      resultado.className = "error";
+      return;
+    }
+    try {
+      const r = await udaLeerPdf(archivo);
+      let servidor = null;
+      try {
+        const resp = await fetch(`${CONFIG.backendUrl}/api/ingest/deuda-aclisa`);
+        if (resp.ok) servidor = await resp.json();
+      } catch (e) { /* solo informativo */ }
+      const detectada = udaEmpresaDetectada(r.entidad);
+      const selector = document.getElementById("uda-empresa");
+      if (detectada) selector.value = detectada;
+      const { problemas } = udaRenderResumen(r, servidor, selector.value);
+      document.getElementById("uda-fila-empresa").style.display = "flex";
+      if (problemas.length > 0){
+        resultado.textContent = "No se puede subir este PDF (mirá el detalle de arriba).";
+        resultado.className = "error";
+        return;
+      }
+      if (!detectada){
+        resultado.textContent = "No pude saber de qué empresa es el PDF: elegila abajo antes de subir.";
+        resultado.className = "error";
+      } else {
+        resultado.textContent = "";
+      }
+      udaParaSubir = { r, servidor };
+      selector.onchange = () => udaRenderResumen(r, servidor, selector.value);
+      document.getElementById("uda-secreto").value = localStorage.getItem("ufpSecretoFarmacia") || "";
+      document.getElementById("uda-fila-secreto").style.display = "flex";
+    } catch (e) {
+      resultado.textContent = "No se pudo leer el PDF: " + e.message;
+      resultado.className = "error";
+    }
+  }
+
+  (function conectarCargaDeudaAclisa(){
+    const zona = document.getElementById("uda-zona");
+    const input = document.getElementById("uda-archivo");
+    zona.addEventListener("click", () => { zona.focus(); input.click(); });
+    zona.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); }
+    });
+    input.addEventListener("change", () => {
+      if (input.files && input.files[0]) udaAceptarArchivo(input.files[0]);
+      input.value = "";
+    });
+    zona.addEventListener("dragover", (e) => { e.preventDefault(); zona.classList.add("arrastrando"); });
+    zona.addEventListener("dragleave", () => zona.classList.remove("arrastrando"));
+    zona.addEventListener("drop", (e) => {
+      e.preventDefault();
+      zona.classList.remove("arrastrando");
+      const archivo = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (archivo) udaAceptarArchivo(archivo);
+    });
+  })();
+
+  document.getElementById("uda-confirmar").addEventListener("click", async () => {
+    const resultado = document.getElementById("uda-resultado");
+    const boton = document.getElementById("uda-confirmar");
+    const secreto = document.getElementById("uda-secreto").value.trim();
+    const empresa = document.getElementById("uda-empresa").value;
+    if (!udaParaSubir){
+      resultado.textContent = "Primero elegí el PDF.";
+      resultado.className = "error";
+      return;
+    }
+    if (!secreto){
+      resultado.textContent = "Falta la clave de sincronización.";
+      resultado.className = "error";
+      return;
+    }
+    const { r } = udaParaSubir;
+    localStorage.setItem("ufpSecretoFarmacia", secreto); // la misma clave que los otros bloques
+    boton.disabled = true;
+    resultado.textContent = "Subiendo...";
+    resultado.className = "";
+    try {
+      const resp = await fetch(`${CONFIG.backendUrl}/api/ingest/deuda-aclisa`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Sync-Secret": secreto },
+        body: JSON.stringify({
+          empresa,
+          entidad: r.entidad,
+          corte: r.corte,
+          totalesPdf: r.totalesPdf,
+          filas: r.filas,
+        }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || !data.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+      resultado.textContent =
+        `Listo: la Deuda de ${NOMBRES_EMPRESA[empresa] || empresa} ahora sale del resumen de ACLISA al ${udaFecha(data.corte)} ` +
+        `(${data.rendiciones} rendiciones, ${data.conDeuda} con deuda).` +
+        (data.githubBackup === false
+          ? ` OJO: NO quedó respaldado en GitHub (${data.githubBackupError || "error desconocido"}). Si el servidor se reinicia, hay que volver a cargarlo.`
+          : "");
+      resultado.className = data.githubBackup === false ? "error" : "ok";
+      udaParaSubir = null;
+      document.getElementById("uda-fila-secreto").style.display = "none";
+      document.getElementById("uda-fila-empresa").style.display = "none";
       limpiarCache();
       cargarDatos();
     } catch (e) {
