@@ -726,7 +726,7 @@
 
       <section class="card" id="tarjeta-resumen-comercial" style="display:none;margin-bottom:16px;">
         <h2 class="tarjeta-titulo">Datos comerciales de Salud Integral</h2>
-        <p class="tarjeta-sub">Cargados a mano desde el Excel gerencial, más el convenio Boreal en vivo desde el sistema.</p>
+        <p class="tarjeta-sub">Cargados a mano desde el Excel gerencial, más el convenio Boreal en vivo desde el sistema (facturado a precio de nomenclador, costo y margen).</p>
         <div class="tiles" id="grid-resumen-comercial"></div>
         <p class="nota" id="nota-resumen-comercial"></p>
       </section>
@@ -1412,6 +1412,31 @@
     document.getElementById(id).textContent = texto;
   }
 
+  // Texto explicativo de la tarjeta de Convenio Boreal: de dónde sale cada número
+  // y qué prestaciones no se pudieron valuar con el nomenclador.
+  function notaBoreal(b){
+    if (!b || !(b.monto > 0)) return "";
+    const partes = [
+      `Convenio Boreal: ${b.cantidadPrestaciones} prestación(es) este mes, valuadas con el nomenclador de Boreal ` +
+      `(precios de agosto 2026 para todo el mes). ` +
+      `Sin comprobante propio en el sistema: se factura después a Paraná Salud y queda como Deuda hasta que se cobre.`
+    ];
+    const sp = b.metodos && b.metodos.sinPrecio;
+    if (sp && sp.filas > 0){
+      const codigos = (b.sinPrecio || []).slice(0, 6).map((x) => x.codigo).join(", ");
+      partes.push(
+        `${sp.filas} prestación(es) por ${money(sp.monto)} no tienen precio fijo en el nomenclador (a presupuesto o código que no figura) ` +
+        `y quedan con el valor del sistema${codigos ? ` — códigos: ${codigos}${(b.sinPrecio || []).length > 6 ? "…" : ""}` : ""}.`
+      );
+    }
+    partes.push(
+      b.costo != null
+        ? "Costo: el Total que tiene cargado el sistema para esas prestaciones; margen = facturado menos costo."
+        : "Costo: el sistema no informó el total de estas prestaciones."
+    );
+    return partes.join(" ");
+  }
+
   function tilesHtml(stats){
     return stats
       .map(
@@ -1921,15 +1946,20 @@
         );
       }
       if (convenioBoreal && convenioBoreal.monto > 0){
-        stats.push({ label: "Convenio Boreal", valor: money(convenioBoreal.monto) });
+        stats.push({ label: "Convenio Boreal · facturado (nomenclador)", valor: money(convenioBoreal.monto) });
+        if (convenioBoreal.costo != null){
+          stats.push({ label: "Convenio Boreal · costo (Total del sistema)", valor: money(convenioBoreal.costo) });
+          stats.push({
+            label: "Convenio Boreal · margen",
+            valor: money(convenioBoreal.margen) + (convenioBoreal.margenPct != null ? ` (${String(convenioBoreal.margenPct).replace(".", ",")}%)` : ""),
+            destacado: true,
+          });
+        } else {
+          stats.push({ label: "Convenio Boreal · costo", valor: "Sin dato" });
+        }
       }
       document.getElementById("grid-resumen-comercial").innerHTML = tilesHtml(stats);
-      fijarTexto(
-        "nota-resumen-comercial",
-        convenioBoreal && convenioBoreal.monto > 0
-          ? `Convenio Boreal: ${convenioBoreal.cantidadPrestaciones} prestación(es) este mes, sin comprobante propio en el sistema. Se factura después a Paraná Salud y queda como Deuda hasta que se cobre.`
-          : ""
-      );
+      fijarTexto("nota-resumen-comercial", notaBoreal(convenioBoreal));
     } else {
       tarjetaComercial.style.display = "none";
     }
