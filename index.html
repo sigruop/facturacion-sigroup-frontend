@@ -1416,11 +1416,36 @@
   // y qué prestaciones no se pudieron valuar con el nomenclador.
   function notaBoreal(b){
     if (!b || !(b.monto > 0)) return "";
+    const fmtFecha = (iso) => {
+      const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+      return m ? `${m[3]}/${m[2]}/${m[1]}` : "";
+    };
+    const fmtMes = (ym) => {
+      const m = String(ym || "").match(/^(\d{4})-(\d{2})$/);
+      return m ? `${m[2]}/${m[1]}` : ym;
+    };
     const partes = [
       `Convenio Boreal: ${b.cantidadPrestaciones} prestación(es) este mes, valuadas con el nomenclador de Boreal ` +
-      `(precios de agosto 2026 para todo el mes). ` +
-      `Sin comprobante propio en el sistema: se factura después a Paraná Salud y queda como Deuda hasta que se cobre.`
+      `(precios de agosto 2026 para todo el mes).`
     ];
+    if (b.facturadoEn){
+      const f = b.facturadoEn;
+      partes.push(
+        `Este período ya está facturado a Paraná Salud (factura${f.fecha ? ` del ${fmtFecha(f.fecha)}` : ""} por ${money(f.monto)}, ` +
+        `cubre ${fmtMes(f.desdeMes)} al ${fmtMes(f.hastaMes)}; cobrado ${money(f.cobrado)}): esa factura reemplaza esta línea y no se suma dos veces. ` +
+        `Acá queda la valuación para comparar con el costo.`
+      );
+    } else {
+      partes.push(
+        `Todavía no hay factura a Paraná Salud para este período: mientras tanto se cuenta en Facturado a precio de nomenclador, sin cobrar. ` +
+        `Cuando se genere en el sistema, la factura reemplaza esta línea y aparece sola en Deuda.`
+      );
+      if (b.facturasSinPeriodo > 0){
+        partes.push(
+          `Ojo: hay ${b.facturasSinPeriodo} factura(s) a Paraná Salud cuyo concepto no dice el período ("Prestaciones realizadas MM-AAAA al MM-AAAA"), así que no se pudieron asociar a este mes.`
+        );
+      }
+    }
     const sp = b.metodos && b.metodos.sinPrecio;
     if (sp && sp.filas > 0){
       const codigos = (b.sinPrecio || []).slice(0, 6).map((x) => x.codigo).join(", ");
@@ -1431,7 +1456,7 @@
     }
     partes.push(
       b.costo != null
-        ? "Costo: el Total que tiene cargado el sistema para esas prestaciones; margen = facturado menos costo."
+        ? "Costo: el Total que tiene cargado el sistema para esas prestaciones; margen = nomenclador menos costo."
         : "Costo: el sistema no informó el total de estas prestaciones."
     );
     return partes.join(" ");
@@ -1946,7 +1971,7 @@
         );
       }
       if (convenioBoreal && convenioBoreal.monto > 0){
-        stats.push({ label: "Convenio Boreal · facturado (nomenclador)", valor: money(convenioBoreal.monto) });
+        stats.push({ label: convenioBoreal.facturadoEn ? "Convenio Boreal · según nomenclador" : "Convenio Boreal · a facturar (nomenclador)", valor: money(convenioBoreal.monto) });
         if (convenioBoreal.costo != null){
           stats.push({ label: "Convenio Boreal · costo (Total del sistema)", valor: money(convenioBoreal.costo) });
           stats.push({
