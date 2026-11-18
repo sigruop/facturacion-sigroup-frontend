@@ -1446,11 +1446,14 @@
         );
       }
     }
+    if (typeof b.nbuSistema === "number" && typeof b.nbuNomenclador === "number" && Math.abs(b.nbuSistema - b.nbuNomenclador) >= 0.01){
+      partes.push(`Laboratorio: se calcula con el NBU del nomenclador (${money(b.nbuNomenclador)}); el sistema lo tiene en ${money(b.nbuSistema)}.`);
+    }
     const sp = b.metodos && b.metodos.sinPrecio;
     if (sp && sp.filas > 0){
       const codigos = (b.sinPrecio || []).slice(0, 6).map((x) => x.codigo).join(", ");
       partes.push(
-        `${sp.filas} prestación(es) por ${money(sp.monto)} no tienen precio fijo en el nomenclador (a presupuesto o código que no figura) ` +
+        `${sp.filas} prestación(es) por ${money(sp.monto)} no tienen precio en el nomenclador (a presupuesto, o código que no figura y no es de laboratorio) ` +
         `y quedan con el valor del sistema${codigos ? ` — códigos: ${codigos}${(b.sinPrecio || []).length > 6 ? "…" : ""}` : ""}.`
       );
     }
